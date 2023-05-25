@@ -7,80 +7,39 @@
 ;; (require 'company)
 ;; (require 'compilation-utils)
 
-
-;;;; Vivado tags
-;; Projects list for the `fpga-vivado-tags-list':
-;; Name of the project (+plus)
-;; 1) Path of the .xpr file (without name)
-;; 2) Name of the .xpr
-;; 3) Path where GTAGS file will be created
-;; 4) Name of the file that will be read by global to generate GTAGS (e.g. verilog files)
-
-;; Variables
-(defvar fpga-vivado-tags-list                 nil)
-(defvar fpga-vivado-tags-xpr-dir              nil)
-(defvar fpga-vivado-tags-xpr-file             nil)
-(defvar fpga-vivado-tags-gtags-dirs-directory nil)
-(defvar fpga-vivado-tags-gtags-dirs-file      nil)
-(defvar fpga-vivado-tags-gtags-file           nil)
+(require 'fpga-utils)
 
 
-(defun fpga-vivado-tags-set-active-xpr ()
-  "Retrieve project list and set variables accordingly."
-  (let ((project)
-        (files-list))
-    ;; Get Project name
-    (setq project (completing-read "Select project: " (mapcar 'car fpga-vivado-tags-list))) ;; Read previous variable and get list of first element of each assoc list
-    (setq files-list (cdr (assoc project fpga-vivado-tags-list)))
-    ;; Set parameters accordingly
-    (setq fpga-vivado-tags-xpr-dir              (nth 0 files-list))
-    (setq fpga-vivado-tags-xpr-file             (nth 1 files-list))
-    (setq fpga-vivado-tags-gtags-dirs-directory (nth 2 files-list))
-    (setq fpga-vivado-tags-gtags-dirs-file      (nth 3 files-list))
-    (setq fpga-vivado-tags-gtags-file           (file-name-concat fpga-vivado-tags-gtags-dirs-directory fpga-vivado-tags-gtags-dirs-file))))
+(defun fpga-xilinx-vivado-files-from-xpr (xpr-file)
+  "Get filelist from Vivado XPR-FILE project file."
+  (let ((xpr-dir (file-name-directory xpr-file))
+        (file-re "<File Path=\"\\(?1:[$_/\\.a-zA-Z0-9]+\\)\">")
+        match file-list)
+    (unless (string= (file-name-extension xpr-file) "xpr")
+      (user-error "Not an xpr file!"))
+    (with-temp-buffer
+      (insert-file-contents xpr-file)
+      (goto-char (point-min))
+      (while (re-search-forward file-re nil :no-error)
+        (setq match (match-string-no-properties 1))
+        ;; Replace $PRDIR project tcl variable
+        (when (string-match "$PRDIR" match)
+          (setq match (replace-regexp-in-string (regexp-quote "$PRDIR")
+                                                xpr-dir
+                                                match
+                                                nil 'literal)))
+        ;; Convert .xci into .v and downcase (generated output of Vivado)
+        (when (string= (file-name-extension match) "xci")
+          (setq match (concat (file-name-sans-extension match) ".v")))
+        ;; Expand and push
+        (setq match (expand-file-name match xpr-dir))
+        (push match file-list)))
+    (delete-dups (nreverse file-list))))
 
-
-(defun fpga-vivado-tags-convert-xci-to-v-and-downcase ()
-  "Convert .xci file paths present in gtags.files to .v and downcase.
-Vivado generates them in this way...
-Assumes it is being used in current buffer (i.e. gtags.files).
-
-INFO: This is a Workaround for Vivado Naming Conventions at IP Wizard generation."
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "\\([a-zA-Z0-9_-]*\\).xci" nil t) ; Fail silently
-        (progn
-          (replace-match "\\1.v")
-          (re-search-backward "/")
-          (downcase-region (point) (line-end-position))))))
-
-
-(defun fpga-vivado-tags-files-from-xpr ()
-  "Create `gtags.files' from Vivado XPR file."
-  (with-temp-buffer
-    ;; (view-buffer-other-window (current-buffer))      ; Option A: preferred (not valid if modifying the temp buffer)
-    ;; (clone-indirect-buffer-other-window "*debug*" t) ; Option B: used here (however, cannot save temp buffer while debugging)
-    (insert-file-contents (file-name-concat fpga-vivado-tags-xpr-dir fpga-vivado-tags-xpr-file))
-    ;; Start Regexp replacement for file
-    (keep-lines "<.*File Path=.*>" (point-min) (point-max))
-    (larumbe/replace-regexp-whole-buffer "<.*File Path=\"" "")
-    (larumbe/replace-regexp-whole-buffer "\">" "")
-    (larumbe/replace-string-whole-buffer "$PPRDIR" fpga-vivado-tags-xpr-dir t)
-    (delete-whitespace-rectangle (point-min) (point-max))
-    (fpga-vivado-tags-convert-xci-to-v-and-downcase) ; Replace xci by corresponding .v files (if existing)
-    (keep-lines fpga-source-extension-regex (point-min) (point-max)) ; Remove any non verilog/vhdl file (such as waveconfig, verilog templates, etc...)
-    ;; Make sure expansion is made relative to SVN sandbox path (same as gtags.file path)
-    (larumbe/buffer-expand-filenames nil fpga-vivado-tags-gtags-dirs-directory)
-    (write-file fpga-vivado-tags-gtags-file)))
-
-
-;;;###autoload
-(defun fpga-vivado-tags ()
-  "Create gtags from created `gtags.files' by parsing Vivado XPR files."
-  (interactive)
-  (fpga-vivado-tags-set-active-xpr)
-  (fpga-vivado-tags-files-from-xpr)
-  (larumbe/gtags-create-tags-async-process fpga-vivado-tags-gtags-dirs-directory))
+(defun fpga-xilinx-tags-from-xpr (out-dir xpr-file)
+  "Generate tags in OUT-DIR from data in XPR-FILE."
+  (interactive "DOutput dir: \nFXPR file: ")
+  (fpga-tags-create out-dir xpr-file #'fpga-xilinx-vivado-files-from-xpr))
 
 
 
