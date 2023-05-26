@@ -1,10 +1,72 @@
 ;;; fpga-lattice.el --- FPGA Lattice Utils  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2022-2023 Gonzalo Larumbe
+
+;; Author: Gonzalo Larumbe <gonzalomlarumbe@gmail.com>
+;; URL: https://github.com/gmlarumbe/fpga
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "28.1"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
+
+;; FPGA Lattice Utilities
+
 ;;; Code:
 
-;; (require 'comint)
-;; (require 'company)
-;; (require 'compilation-utils)
+(require 'fpga-utils)
+
+
+;;;; Custom
+(defgroup fpga-lattice nil
+  "FPGA Lattice customization."
+  :group 'fpga)
+
+(defcustom fpga-lattice-diamond-bin (executable-find "diamondc")
+  "Path to Diamond executable."
+  :type 'string
+  :group 'fpga-lattice)
+
+(defcustom fpga-lattice-diamond-cmd-opts '("-mode" "tcl" "-nojournal" "-nolog")
+  "Diamond process options."
+  :type '(repeat string)
+  :group 'fpga-lattice)
+
+(defcustom fpga-lattice-diamond-buf "*diamond*"
+  "Buffer to use for Diamond compilation process."
+  :type 'string
+  :group 'fpga-lattice)
+
+(defcustom fpga-lattice-diamond-shell-buf "*diamond-shell*"
+  "Buffer to use for Diamond interactive shell process."
+  :type 'string
+  :group 'fpga-lattice)
+
+(defcustom fpga-lattice-diamond-syn-script
+  '("synth_design -rtl"
+    "synth_design"
+    "exit")
+  "Diamond script to be run for synthesis.
+Each string of the list corresponds to one statement of the TCL input file."
+  :type '(repeat string)
+  :group 'fpga-lattice)
+
+
+;;;; Internal
+(defconst fpga-lattice-diamond--base-cmd
+  (concat fpga-lattice-diamond-bin " " (mapconcat #'identity fpga-lattice-diamond-cmd-opts " ")))
 
 
 ;;;; Compilation-re
@@ -119,6 +181,13 @@ When the region is active, send the region instead."
     (comint-send-string proc "\n")
     (goto-char end)))
 
+
+;;;; Compilation-re
+(defvar larumbe/compilation-error-re-lattice
+  '((lattice-error     "\\(?1:^ERROR\\) -"                                                                    1 nil nil 2 nil (1 compilation-error-face))
+    (lattice-warning   "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\) \\(?3:[a-zA-Z0-9\./_-]+\\)(\\(?4:[0-9]+\\)):" 3 4   nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-binary-face))
+    (lattice-warning2  "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\)"                                              1 nil nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-binary-face))
+    (lattice-warning3  "\\(?1:^WARNING\\) -"                                                                  1 nil nil 1 nil (1 compilation-warning-face))))
 
 
 (provide 'fpga-lattice)
