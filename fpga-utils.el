@@ -5,7 +5,6 @@
 ;; Author: Gonzalo Larumbe <gonzalomlarumbe@gmail.com>
 ;; URL: https://github.com/gmlarumbe/fpga
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "28.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,6 +27,8 @@
 
 (require 'compile)
 (require 'ggtags)
+(require 'company)
+
 
 ;;;; Custom
 (defcustom fpga-utils-source-extension-re (concat "\\." (regexp-opt '("sv" "svh" "v" "vh" "vhd" "vhdl")) "$")
@@ -37,6 +38,11 @@
 
 (defcustom fpga-utils-tags-creation-fn #'ggtags-create-tags
   "Function to use to create tags."
+  :type 'function
+  :group 'fpga)
+
+(defcustom fpga-utils-completion-use-company-p t
+  "Wheter to use `company-mode' for completion in shells."
   :type 'function
   :group 'fpga)
 
@@ -211,8 +217,7 @@ ARGS is a property list."
          ;;   file with results from `comint--complete-file-name-data', while there is
          ;;   no actual file.  If this function is before capf-fn in the
          ;;   `comint-dynamic-complete-functions' hook, it will never execute.
-         (when (locate-library "company")
-           (require 'company)
+         (when fpga-utils-completion-use-company-p
            (setq-local comint-dynamic-complete-functions '(comint-c-a-p-replace-by-expanded-history))
            (setq-local company-backends '(company-files company-capf))
            (company-mode 1))
