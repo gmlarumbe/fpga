@@ -24,8 +24,10 @@
 
 ;; FPGA Utilities for Altera Quartus:
 ;;  - Automatic tags creation from project QSF file
-;;  - ...
-;;  - TODO: Fill
+;;  - Synthesis compilation with error regexp matching
+;;  - Improved Quartus shell with syntax highlighting and autocompletion
+;;  - Quartus SDC mode with syntax highlighting and autocompletion
+;;  - Quartus QSF mode with syntax highlighting and autocompletion
 
 ;;; Code:
 
@@ -38,8 +40,6 @@
   "FPGA Altera customization."
   :group 'fpga)
 
-;; TODO: Check what's the command for the System Console TCL Binary:
-;; https://www.intel.com/content/www/us/en/docs/programmable/683819/22-4/starting-system-console.html
 (defcustom fpga-altera-quartus-bin (executable-find "quartus_sh")
   "Path to Quartus executable."
   :type 'string
@@ -440,145 +440,6 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
 
 ;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el")
 (fpga-utils-define-shell-mode fpga-altera-quartus-shell
-  :bin fpga-altera-quartus-bin
-  :base-cmd (concat fpga-altera-quartus--base-cmd " -s")
-  :shell-commands fpga-altera-quartus-shell-commands
-  :comile-re fpga-altera-quartus-compile-re
-  :buf fpga-altera-quartus-shell-buf
-  :font-lock-kwds fpga-altera-quartus-shell-font-lock)
-
-
-;;;; Quartus System Console
-;; Quartus 22.1 System Console Tcl and Toolkit Command Reference guide:
-(defvar fpga-altera-quartus-shell-system-console-commands
-  '(;; 1. System Console Tcl Command Reference
-    "add_help" "add_service" "autosweep_add_input_parameter"
-    "autosweep_add_output_metric" "autosweep_apply_bestcase" "autosweep_apply_case"
-    "autosweep_create_instance" "autosweep_destroy_instance" "autosweep_get_best_case"
-    "autosweep_get_case_count" "autosweep_get_case_description" "autosweep_get_case_result"
-    "autosweep_get_data" "autosweep_get_input_parameter_range" "autosweep_get_input_parameters"
-    "autosweep_get_instances" "autosweep_get_output_metrics" "autosweep_get_progress"
-    "autosweep_remove_input_paramater" "autosweep_remove_output_metric" "autosweep_set_input_parameter_range"
-    "autosweep_start" "autosweep_stop" "bytestream_receive"
-    "bytestream_send" "claim_service" "close_service"
-    "debug_get_commands" "debug_get_legacy_service_types" "debug_print_filesystem"
-    "design_extract_debug_files" "design_extract_dotty" "design_get_warnings"
-    "design_instantiate" "design_link" "design_load"
-    "design_update_debug_files" "device_download_sof" "device_get_board"
-    "device_get_connections" "device_get_design" "etile_eye_background_scan_done"
-    "etile_eye_cancel_background_scan" "etile_eye_get_attribute" "etile_eye_get_data"
-    "etile_eye_scan_and_load" "etile_eye_unload" "etile_get_actions"
-    "etile_get_parameter" "etile_get_parameters" "etile_read_register"
-    "etile_run_action" "etile_set_parameter" "etile_write_register"
-    "executor_cancel" "executor_clean_directory" "executor_get_directory"
-    "executor_get_environment" "executor_get_exit_value" "executor_get_stderr"
-    "executor_get_stdout" "executor_is_cancelled" "executor_is_done"
-    "executor_run" "executor_set_environment" "executor_unset_environment"
-    "executor_wait_for" "eye_create_instance" "eye_destroy_instance"
-    "eye_get_channel" "eye_get_data" "eye_get_instances"
-    "eye_get_progress" "eye_get_toolkit_instance" "eye_start"
-    "eye_stop" "get_claimed_services" "get_service_paths"
-    "get_service_types" "get_services_to_add" "get_version"
-    "help" "io_bus_access" "io_bus_get_protocol"
-    "is_plugin_enabled" "is_service_open" "is_service_path"
-    "issp_get_instance_info" "issp_read_probe_data" "issp_read_source_data"
-    "issp_write_source_data" "jtag_debug_loop" "jtag_debug_reset_system"
-    "jtag_debug_sample_clock" "jtag_debug_sample_reset" "jtag_debug_sense_clock"
-    "log_command_start" "log_command_stop" "loopback_get"
-    "loopback_set" "loopback_start" "loopback_stop"
-    "marker_get_assignments" "marker_get_info" "marker_get_type"
-    "marker_get_types" "marker_node_info" "master_get_register_names"
-    "master_get_slaves" "master_get_timeout" "master_read_16"
-    "master_read_32" "master_read_8" "master_read_memory"
-    "master_read_to_file" "master_set_timeout" "master_write_16"
-    "master_write_32" "master_write_8" "master_write_from_file"
-    "master_write_memory" "module_get_children" "module_get_keys"
-    "module_get_parent" "module_get_values" "monitor_add_range"
-    "monitor_get_all_read_intervals" "monitor_get_interval" "monitor_get_missing_event_count"
-    "monitor_get_read_interval" "monitor_read_all_data" "monitor_read_data"
-    "monitor_set_callback" "monitor_set_enabled" "monitor_set_interval"
-    "open_service" "packet_send_command" "plugin_disable"
-    "plugin_enable" "processor_clear_breakpoint" "processor_download_elf"
-    "processor_gdbserver" "processor_gdbserver_start" "processor_gdbserver_stop"
-    "processor_get_register" "processor_get_register_names" "processor_in_debug_mode"
-    "processor_reset" "processor_run" "processor_semihosting_start"
-    "processor_semihosting_stop" "processor_set_breakpoint" "processor_set_register"
-    "processor_step" "processor_stop" "processor_stop_reason"
-    "processor_verify_elf" "refresh_connections" "remove_service"
-    "semiConsoleNew" "semihosting_start" "semihosting_stop"
-    "send_message" "sld_access_dr" "sld_access_ir"
-    "sld_lock" "sld_run_test_idle" "sld_send_program"
-    "sld_test_logic_reset" "sld_unlock" "stp_run"
-    "system_get_keys" "system_get_values" "toolkit_get_toolkit_actions"
-    "toolkit_get_toolkit_autosweep_input_parameters" "toolkit_get_toolkit_autosweep_output_metrics" "toolkit_get_toolkit_channel_properties"
-    "toolkit_get_toolkit_channels" "toolkit_get_toolkit_display_hint" "toolkit_get_toolkit_display_id_to_name"
-    "toolkit_get_toolkit_display_item_property" "toolkit_get_toolkit_eye_channels" "toolkit_get_toolkit_eye_input_parameters"
-    "toolkit_get_toolkit_eye_output_metrics" "toolkit_get_toolkit_matching_modules" "toolkit_get_toolkit_matching_services"
-    "toolkit_get_toolkit_matching_systems" "toolkit_get_toolkit_parameter_properties" "toolkit_get_toolkit_parameter_property"
-    "toolkit_get_toolkit_parameter_value" "toolkit_get_toolkit_parameters" "toolkit_get_toolkit_properties"
-    "toolkit_get_toolkit_property" "toolkit_get_toolkit_requirement_ids" "toolkit_get_toolkit_requirement_properties"
-    "toolkit_get_toolkit_requirement_property" "toolkit_load_toolkit_instance" "toolkit_log_toolkit_command_start"
-    "toolkit_log_toolkit_command_stop" "toolkit_run_toolkit_action" "toolkit_set_toolkit_parameter_value"
-    "toolkit_unload_toolkit_instance" "trace_db_delete_snapshot" "trace_db_get_snapshot"
-    "trace_db_snapshot_get_event_data" "trace_db_snapshot_get_event_fields" "trace_db_snapshot_get_event_kind"
-    "trace_db_snapshot_get_event_timestamp" "trace_db_snapshot_get_events" "trace_decoder_add_key_result"
-    "trace_decoder_add_result" "trace_decoder_define_key" "trace_decoder_get_config"
-    "trace_decoder_get_data_16" "trace_decoder_get_data_16be" "trace_decoder_get_data_32"
-    "trace_decoder_get_data_32be" "trace_decoder_get_data_64" "trace_decoder_get_data_64be"
-    "trace_decoder_get_data_8" "trace_decoder_get_length" "trace_decoder_get_timestamp"
-    "trace_decoder_set_callback" "trace_decoder_set_config_regs" "trace_decoder_set_summary"
-    "trace_get_db_size" "trace_get_max_db_size" "trace_get_monitor_info"
-    "trace_get_monitors" "trace_get_status" "trace_load"
-    "trace_read_monitor" "trace_save" "trace_set_max_db_size"
-    "trace_set_trigger_mode" "trace_start" "trace_stop"
-    "trace_write_monitor"
-    ;; Properties
-    ;; 1.2.1. _hw.tcl Capture Mode
-    ;; 1.2.2. _hw.tcl Command Flag Name
-    ;; 1.2.3. _hw.tcl Format
-    ;; 1.2.4. _hw.tcl Kind
-    ;; 1.2.5. _hw.tcl Protocol
-    ;; 1.2.6. _hw.tcl Status
-    ;; 1.2.7. _hw.tcl Trigger Mode
-
-    ;; 2. Toolkit Tcl Command References
-    "add_channel" "add_display_item" "add_parameter"
-    "add_requirement" "add_timed_callback" "get_accessible_module"
-    "get_accessible_modules" "get_accessible_service" "get_accessible_services"
-    "get_accessible_system" "get_channel_display_group" "get_channel_property"
-    "get_display_hint" "get_display_item_property" "get_eye_viewer_display_group"
-    "get_parameter_property" "get_parameter_value" "get_toolkit_property"
-    "remove_timed_callback" "send_message" "set_channel_property"
-    "set_current_progress" "set_display_hint" "set_display_item_property"
-    "set_eye_data" "set_eye_property" "set_parameter_property"
-    "set_parameter_update_callback" "set_parameter_value" "set_requirement_property"
-    "set_toolkit_property" "stop_requested"
-    ;; 2.2. Properties
-    ;; 2.2.1. _hw.tcl Callbacks
-    ;; 2.2.2. _hw.tcl Channel Properties
-    ;; 2.2.3. _hw.tcl Channel Type
-    ;; 2.2.4. _hw.tcl Display Hint
-    ;; 2.2.5. _hw.tcl Display Item Properties
-    ;; 2.2.6. _hw.tcl Display Item Type
-    ;; 2.2.7. _hw.tcl Eye Properties
-    ;; 2.2.8. _hw.tcl Parameter Properties
-    ;; 2.2.9. _hw.tcl Parameter Type
-    ;; 2.2.10. _hw.tcl Requirement Properties
-    ;; 2.2.11. _hw.tcl Requirement Type
-    ;; 2.2.12. _hw.tcl Toolkit Properties
-    ))
-
-;; (defconst fpga-altera-quartus-shell-commands-font-lock
-;;   (eval-when-compile (regexp-opt fpga-altera-quartus-shell-commands 'symbols)))
-
-;; (defconst fpga-altera-quartus-shell-font-lock
-;;   (append `((,fpga-altera-quartus-shell-commands-font-lock 0 font-lock-keyword-face)
-;;             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))
-;;           fpga-altera-quartus-sdc-font-lock))
-
-;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el")
-;; TODO:
-(fpga-utils-define-shell-mode fpga-altera-quartus-system-console
   :bin fpga-altera-quartus-bin
   :base-cmd (concat fpga-altera-quartus--base-cmd " -s")
   :shell-commands fpga-altera-quartus-shell-commands
