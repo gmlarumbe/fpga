@@ -127,7 +127,9 @@ With `prefix-arg', delete NUM-CHARS characters."
       (delete-char num-chars))))
 
 (defmacro fpga-utils-define-compilation-mode (name &rest args)
-  "Macro to define a compilation derived mode for a FPGA error regexp."
+  "Macro to define a compilation derived mode for a FPGA error regexp.
+NAME is the name of the created function.
+ARGS is a property list with :desc, :docstring, :compile-re and :buf-name."
   (declare (indent 1) (debug 1))
   (let ((desc (plist-get args :desc))
         (docstring (plist-get args :docstring))
@@ -141,7 +143,8 @@ With `prefix-arg', delete NUM-CHARS characters."
        (goto-char (point-max)))))
 
 (defmacro fpga-utils-define-compile-fn (name &rest args)
-  "Macro to define a function to compile with error regexp highlighting."
+  "Macro to define a function to compile with error regexp highlighting.
+Function will be callable by NAME."
   (declare (indent 1) (debug 1))
   (let ((docstring (plist-get args :docstring))
         (buf (plist-get args :buf))
@@ -156,6 +159,9 @@ With `prefix-arg', delete NUM-CHARS characters."
        (,comp-mode))))
 
 (defmacro fpga-utils-define-shell-mode (name &rest args)
+  "Define shell mode
+NAME is the name of the created function.
+ARGS is a property list."
   (declare (indent 1) (debug 1))
   (let (;; Keyword args
         (bin (plist-get args :bin))
@@ -247,7 +253,6 @@ When the region is active, send the region instead."
        ;; Add font-lock keywords for extra syntax highlighting
        (when ,font-lock-kwds
          (add-hook ',mode-hook (lambda () (font-lock-add-keywords nil ,font-lock-kwds 'append)))))))
-
 
 
 ;;;; Compilation-re

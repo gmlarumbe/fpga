@@ -124,6 +124,13 @@
     "eco_clone" "eco_swap" "eco_rename" "eco_place"
     "eco_route" "eco_config"))
 
+(defconst fpga-lattice-diamond-shell-commands-font-lock
+  (eval-when-compile (regexp-opt fpga-lattice-diamond-shell-commands 'symbols)))
+
+(defconst fpga-lattice-diamond-shell-font-lock
+  (append `((,fpga-lattice-diamond-shell-commands-font-lock 0 font-lock-keyword-face)
+            (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))))
+
 ;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-altera.el")
 (fpga-utils-define-shell-mode fpga-lattice-diamond-shell
   :bin fpga-lattice-diamond-bin
