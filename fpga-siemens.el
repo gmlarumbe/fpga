@@ -85,8 +85,7 @@
     (vsim-vhdl-failure "^# \\*\\* \\(?1:Failure\\): " nil nil nil 2 nil (1 compilation-error-face))
     (vsim-vhdl-error   "^# \\*\\* \\(?1:Error\\): "   nil nil nil 2 nil (1 compilation-error-face))
     (vsim-vhdl-warning "^# \\*\\* \\(?1:Warning\\): " nil nil nil 1 nil (1 compilation-warning-face))
-    (vsim-vhdl-note    "^# \\*\\* \\(?1:Note\\): "    nil nil nil 0 nil (1 compilation-info-face))
-    ))
+    (vsim-vhdl-note    "^# \\*\\* \\(?1:Note\\): "    nil nil nil 0 nil (1 compilation-info-face))))
 
 (fpga-utils-define-compilation-mode fpga-siemens-vsim-compilation-mode
   :desc "Vsim"

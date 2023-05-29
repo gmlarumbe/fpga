@@ -144,7 +144,8 @@ ARGS is a property list with :desc, :docstring, :compile-re and :buf-name."
 
 (defmacro fpga-utils-define-compile-fn (name &rest args)
   "Macro to define a function to compile with error regexp highlighting.
-Function will be callable by NAME."
+Function will be callable by NAME.
+ARGS is a property list."
   (declare (indent 1) (debug 1))
   (let ((docstring (plist-get args :docstring))
         (buf (plist-get args :buf))
@@ -159,7 +160,7 @@ Function will be callable by NAME."
        (,comp-mode))))
 
 (defmacro fpga-utils-define-shell-mode (name &rest args)
-  "Define shell mode
+  "Define shell mode.
 NAME is the name of the created function.
 ARGS is a property list."
   (declare (indent 1) (debug 1))

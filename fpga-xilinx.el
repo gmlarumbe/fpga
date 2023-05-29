@@ -139,7 +139,7 @@ Each string of the list corresponds to one statement of the TCL input file."
 (defun fpga-xilinx-vivado-syn (xpr-file)
   "Open Vivado project from XPR-FILE and run `fpga-xilinx-vivado-syn-script'."
   (interactive "FXPR File: ")
-  (unless (string= (file-name-extension qpf-file) "xpr")
+  (unless (string= (file-name-extension xpr-file) "xpr")
     (error "Selected file is not a XPR"))
   (unless fpga-xilinx-vivado-bin
     (error "Binary vivado not found in the $PATH"))
@@ -163,7 +163,7 @@ Each string of the list corresponds to one statement of the TCL input file."
 It is needed to create simulation scripts first in the GUI, by simply running a
 simulation inside Vivado."
   (interactive "FXPR File: ")
-  (unless (string= (file-name-extension qpf-file) "xpr")
+  (unless (string= (file-name-extension xpr-file) "xpr")
     (error "Selected file is not a XPR"))
   (unless fpga-xilinx-vivado-bin
     (error "Binary vivado not found in the $PATH"))
@@ -224,13 +224,13 @@ simulation inside Vivado."
     "intf_net" "dict" "range" "offset" "dir" "type" "vlnv" "net"))
 
 (defconst fpga-xilinx-vivado-xdc-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-xilinx-vivado-xdc-commands 'symbols)))
+  (regexp-opt fpga-xilinx-vivado-xdc-commands 'symbols))
 
 (defconst fpga-xilinx-vivado-xdc-properties-font-lock
-  (eval-when-compile (regexp-opt fpga-xilinx-vivado-xdc-properties 'symbols)))
+  (regexp-opt fpga-xilinx-vivado-xdc-properties 'symbols))
 
 (defconst fpga-xilinx-vivado-xdc-switches-font-lock
-  (eval-when-compile (concat "-" (regexp-opt fpga-xilinx-vivado-xdc-switches 'symbols))))
+  (concat "-" (regexp-opt fpga-xilinx-vivado-xdc-switches 'symbols)))
 
 (defconst fpga-xilinx-vivado-xdc-font-lock
   `((,fpga-xilinx-vivado-xdc-commands-font-lock 0 font-lock-keyword-face)
@@ -687,7 +687,7 @@ simulation inside Vivado."
 
 
 (defconst fpga-xilinx-vivado-shell-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-xilinx-vivado-shell-commands 'symbols)))
+  (regexp-opt fpga-xilinx-vivado-shell-commands 'symbols))
 
 (defconst fpga-xilinx-vivado-shell-font-lock
   (append `((,fpga-xilinx-vivado-shell-commands-font-lock 0 font-lock-keyword-face)

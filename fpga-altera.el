@@ -83,7 +83,7 @@ buffer."
 
 (defconst fpga-altera-quartus--sed-cmd-remove-shell-color "sed -e 's/\x1b\[[0-9;]*m//g'"
   "Sed command to remove ANSI color from shell output.
-This is needed since the command \"quartus_sh\" will colorize the output by default.
+This is needed since the command \"quartus_sh\" colorizes the output by default.
 
 https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-stream.")
 
@@ -101,7 +101,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
     (altera-info "^\\(?1:^Info\\) \\(?2:([0-9]+)\\): .*File: \\(?3:[a-zA-Z0-9\._/\\]+\\) Line: \\(?4:[0-9]+\\)" 3 4 nil 0 nil (1 compilation-info-face) (2 fpga-utils-compilation-msg-code-face))
     (altera-info2 "^\\(?1:^Info\\) \\(?2:([0-9]+)\\): " nil nil nil 0 nil (1 compilation-info-face) (2 fpga-utils-compilation-msg-code-face))
     (altera-info3 "^\\(?1:^Info:\\) " nil nil nil 0 nil (1 compilation-info-face)))
-  "Altera Quartus regexps:")
+  "Altera Quartus regexps.")
 
 (fpga-utils-define-compilation-mode fpga-altera-quartus-compilation-mode
   :desc "Quartus"
@@ -173,7 +173,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
 ;;;; Quartus SDC mode
 ;; SDC and TimeQuest API Reference Manual:
 ;; - https://www.intel.com/content/dam/support/jp/ja/programmable/support-resources/bulk-container/pdfs/literature/manual/mnl-sdctmq-1.pdf
-(defvar fpga-altera-quartus-sdc-commands
+(defconst fpga-altera-quartus-sdc-commands
   '(;; sdc
     "all_clocks" "all_inputs" "all_outputs"
     "all_registers" "create_clock" "create_generated_clock"
@@ -206,7 +206,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
     "write_sdc"))
 
 (defconst fpga-altera-quartus-sdc-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-altera-quartus-sdc-commands 'symbols)))
+  (regexp-opt fpga-altera-quartus-sdc-commands 'symbols))
 
 (defconst fpga-altera-quartus-sdc-font-lock
   `((,fpga-altera-quartus-sdc-commands-font-lock 0 font-lock-keyword-face)
@@ -427,10 +427,10 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
     "help"))
 
 (defconst fpga-altera-quartus-shell-packages-font-lock
-  (eval-when-compile (regexp-opt fpga-altera-quartus-shell-packages 'symbols)))
+  (regexp-opt fpga-altera-quartus-shell-packages 'symbols))
 
 (defconst fpga-altera-quartus-shell-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-altera-quartus-shell-commands 'symbols)))
+  (regexp-opt fpga-altera-quartus-shell-commands 'symbols))
 
 (defconst fpga-altera-quartus-shell-font-lock
   (append `((,fpga-altera-quartus-shell-commands-font-lock 0 font-lock-keyword-face)

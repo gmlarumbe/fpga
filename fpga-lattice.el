@@ -125,7 +125,7 @@
     "eco_route" "eco_config"))
 
 (defconst fpga-lattice-diamond-shell-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-lattice-diamond-shell-commands 'symbols)))
+  (regexp-opt fpga-lattice-diamond-shell-commands 'symbols))
 
 (defconst fpga-lattice-diamond-shell-font-lock
   (append `((,fpga-lattice-diamond-shell-commands-font-lock 0 font-lock-keyword-face)

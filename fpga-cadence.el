@@ -90,8 +90,8 @@
     "post_session_dispatch_parameters" "pre_session_dispatch_parameters"
     "post_session_drm" "pre_session_drm" "post_session_script" "pre_session_script"
     "top_dir" "verification_scope"))
-(defconst vsif-group-container-attributes '("bundle_group" "repetitions"))
-(defconst vsif-group-test-containers-attributes
+(defconst fpga-cadence-vsif-group-container-attributes '("bundle_group" "repetitions"))
+(defconst fpga-cadence-vsif-group-test-containers-attributes
   '("bundle_group" "code_coverage" "count" "copied_files"
     "depends_on" "details" "drm_job_priority_vmgr" "dut_name"
     "estimated_duration_vmgr" "exit_on" "fully_directed" "gui_mode"
@@ -107,15 +107,15 @@
 (defconst fpga-cadence-vsif-queuing_policy-options '("long2short" "short2long" "round_robin" "vsif_order"))
 
 (defconst fpga-cadence-vsif-ntf-containers-re
-  (eval-when-compile (regexp-opt fpga-cadence-vsif-ntf-containers 'symbols)))
+  (regexp-opt fpga-cadence-vsif-ntf-containers 'symbols))
 (defconst fpga-cadence-vsif-session-container-attributes-re
-  (eval-when-compile (regexp-opt fpga-cadence-vsif-session-container-attributes 'symbols)))
+  (regexp-opt fpga-cadence-vsif-session-container-attributes 'symbols))
 (defconst fpga-cadence-vsif-group-container-attributes-re
-  (eval-when-compile (regexp-opt vsif-group-container-attributes 'symbols)))
+  (regexp-opt fpga-cadence-vsif-group-container-attributes 'symbols))
 (defconst fpga-cadence-vsif-group-test-containers-attributes-re
-  (eval-when-compile (regexp-opt vsif-group-test-containers-attributes 'symbols)))
+  (regexp-opt fpga-cadence-vsif-group-test-containers-attributes 'symbols))
 (defconst fpga-cadence-vsif-queuing_policy-options-re
-  (eval-when-compile (regexp-opt fpga-cadence-vsif-queuing_policy-options 'symbols)))
+  (regexp-opt fpga-cadence-vsif-queuing_policy-options 'symbols))
 
 (defconst fpga-cadence-vsif-ntf-containers-re-font-lock
   (concat "\\s-*" fpga-cadence-vsif-ntf-containers-re "\\s-+\\_<\\([a-zA-Z0-9_-]+\\)\\_>\\s-*"))
