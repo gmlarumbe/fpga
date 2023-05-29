@@ -22,9 +22,10 @@
 
 ;;; Commentary:
 
-;; FPGA Lattice Utilities
-;;  - TODO:
-
+;; FPGA Utilities for Lattice Diamond:
+;;  - Compilation with error regexp matching
+;;  - Improved Diamond shell with syntax highlighting and autocompletion
+;;
 ;;; Code:
 
 (require 'fpga-utils)
@@ -40,7 +41,7 @@
   :type 'string
   :group 'fpga-lattice)
 
-(defcustom fpga-lattice-diamond-cmd-opts '("-mode" "tcl" "-nojournal" "-nolog")
+(defcustom fpga-lattice-diamond-cmd-opts nil
   "Diamond process options."
   :type '(repeat string)
   :group 'fpga-lattice)
@@ -55,16 +56,6 @@
   :type 'string
   :group 'fpga-lattice)
 
-;; TODO
-(defcustom fpga-lattice-diamond-syn-script
-  '("synth_design -rtl"
-    "synth_design"
-    "exit")
-  "Diamond script to be run for synthesis.
-Each string of the list corresponds to one statement of the TCL input file."
-  :type '(repeat string)
-  :group 'fpga-lattice)
-
 
 ;;;; Internal
 (defconst fpga-lattice-diamond--base-cmd
@@ -72,13 +63,12 @@ Each string of the list corresponds to one statement of the TCL input file."
 
 
 ;;;; Compilation-re
-(defvar fpga-lattice-diamond-compile-re
-  '((lattice-error     "\\(?1:^ERROR\\) -"                                                                    1 nil nil 2 nil (1 compilation-error-face))
-    (lattice-warning   "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\) \\(?3:[a-zA-Z0-9\./_-]+\\)(\\(?4:[0-9]+\\)):" 3 4   nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-bin-face))
-    (lattice-warning2  "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\)"                                              1 nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-bin-face))
-    (lattice-warning3  "\\(?1:^WARNING\\) -"                                                                  1 nil nil 1 nil (1 compilation-warning-face)))
+(defconst fpga-lattice-diamond-compile-re
+  '((lattice-error     "\\(?1:^ERROR\\) -" 1 nil nil 2 nil (1 compilation-error-face))
+    (lattice-warning   "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\) \\(?3:[a-zA-Z0-9\./_-]+\\)(\\(?4:[0-9]+\\)):" 3 4 nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-bin-face))
+    (lattice-warning2  "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\)" 1 nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-bin-face))
+    (lattice-warning3  "\\(?1:^WARNING\\) -" 1 nil nil 1 nil (1 compilation-warning-face)))
   "Lattice Diamond regexps.")
-
 
 (fpga-utils-define-compilation-mode fpga-lattice-diamond-compilation-mode
   :desc "Diamond"
@@ -92,17 +82,8 @@ Each string of the list corresponds to one statement of the TCL input file."
   :comp-mode fpga-lattice-diamond-compilation-mode)
 
 
-
-;;;; Synthesis
-;; TODO
-
-
-;;;; Tags
-;; TODO: Analyze the .prj file and check how files are added
-;; Maybe download the evaluation version and check a test project
-
-;;;; Diamond-TCL Shell
-;; Lattice Diamond User Guide Tcl Scripting section converted to text via `pdftotext'
+;;;; Diamond Shell
+;; Lattice Diamond User Guide Tcl Scripting section
 (defvar fpga-lattice-diamond-shell-commands
   '(;; Help
     "help"
@@ -141,30 +122,16 @@ Each string of the list corresponds to one statement of the TCL input file."
     ;; ECO extended Tcl commands
     "eco_design" "eco_add" "eco_delete" "eco_unbind"
     "eco_clone" "eco_swap" "eco_rename" "eco_place"
-    "eco_route" "eco_config"
-    ))
+    "eco_route" "eco_config"))
 
-;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-lattice.el")
+;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-altera.el")
 (fpga-utils-define-shell-mode fpga-lattice-diamond-shell
-  fpga-lattice-diamond-bin
-  fpga-lattice-diamond--base-cmd
-  fpga-lattice-diamond-shell-commands
-  fpga-lattice-diamond-compile-re
-  fpga-lattice-diamond-shell-buf)
-
-
-;;;; ModesFDC(SDC)/LPF mode
-;; LPF: Logical Preference File:
-;; TODO: Look for reference guide for LPF
-
-;; LDC: Lattice Design Constraints (if using Lattice Synthesis Engine, LSE)
-;; TODO: Look for reference guide for LDC
-
-;; FDC/SDC: FPGA Design Constraints (if using Synplify Pro or Precision)
-;; TODO: Look for reference guide for FDC (SDC for Diamond)
-
-
-;;;;;
+  :bin fpga-lattice-diamond-bin
+  :base-cmd fpga-lattice-diamond--base-cmd
+  :shell-commands fpga-lattice-diamond-shell-commands
+  :compile-re fpga-lattice-diamond-compile-re
+  :buf fpga-lattice-diamond-shell-buf
+  :font-lock-kwds fpga-lattice-diamond-shell-font-lock)
 
 
 (provide 'fpga-lattice)

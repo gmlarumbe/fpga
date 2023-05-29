@@ -22,14 +22,26 @@
 
 ;;; Commentary:
 
-;; FPGA Siemens Utilities
-
+;; FPGA/ASIC Utilities for Siemens/Mentor QuestaSim/ModelSim
+;;  - Compilation with error regexp matching
+;;
 ;;; Code:
 
 
 (require 'fpga-utils)
 
-(defvar larumbe/compilation-error-re-uvm-modelsim
+;;;; Custom
+(defgroup fpga-siemens nil
+  "FPGA Siemens customization."
+  :group 'fpga)
+
+(defcustom fpga-siemens-vsim-buf "*vsim*"
+  "Buffer to use for QuestaSim/ModelSim compilation process."
+  :type 'string
+  :group 'fpga-siemens)
+
+;;;; Compilation-re
+(defvar fpga-siemens-vsim-uvm-compile-re
   '((uvm-fatal    "^# \\(?1:UVM_FATAL\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))"   2 3 nil 2 nil (1 compilation-error-face))
     (uvm-fatal2   "^# \\(?1:UVM_FATAL\\) @"   1 nil nil 2 nil)
     (uvm-error    "^# \\(?1:UVM_ERROR\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))"   2 3 nil 2 nil (1 compilation-error-face))
@@ -39,7 +51,7 @@
     (uvm-info     "^# \\(?1:UVM_INFO\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))"    2 3 nil 0 nil (1 compilation-info-face))
     (uvm-info2    "^# \\(?1:UVM_INFO\\) @"    1 nil nil 0 nil)))
 
-(defvar larumbe/compilation-error-re-modelsim
+(defvar fpga-siemens-vsim-compile-re
   '(;; vlog
     (vlog-error   "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:[a-zA-Z0-9./_-]+\\)(\\(?3:[0-9]+\\)): \\(?4:([a-zA-Z0-9_-]+) \\)?" 2 3 nil 2 nil (1 compilation-error-face))
     (vlog-error2  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:([a-zA-Z0-9_-]+) \\)?\\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
@@ -76,8 +88,16 @@
     (vsim-vhdl-note    "^# \\*\\* \\(?1:Note\\): "    nil nil nil 0 nil (1 compilation-info-face))
     ))
 
+(fpga-utils-define-compilation-mode fpga-siemens-vsim-compilation-mode
+  :desc "Vsim"
+  :docstring "Vsim Compilation mode."
+  :compile-re fpga-siemens-vsim-compile-re
+  :buf-name fpga-siemens-vsim-buf)
 
-
+(fpga-utils-define-compile-fn fpga-siemens-vsim-compile
+  :docstring "Compile Vsim COMMAND with error regexp highlighting."
+  :buf fpga-siemens-vsim-buf
+  :comp-mode fpga-siemens-vsim-compilation-mode)
 
 
 (provide 'fpga-siemens)

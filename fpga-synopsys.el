@@ -100,7 +100,7 @@
   :bin fpga-synopsys-synplify-bin
   :base-cmd fpga-synopsys-synplify--base-cmd
   :shell-commands nil ; No auto-completion/font-lock yet
-  :comile-re fpga-synopsys-synplify-compile-re
+  :compile-re fpga-synopsys-synplify-compile-re
   :buf fpga-synopsys-synplify-shell-buf
   :font-lock-kwds nil) ; No extra font-lock yet
 

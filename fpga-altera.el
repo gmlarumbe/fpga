@@ -443,7 +443,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
   :bin fpga-altera-quartus-bin
   :base-cmd (concat fpga-altera-quartus--base-cmd " -s")
   :shell-commands fpga-altera-quartus-shell-commands
-  :comile-re fpga-altera-quartus-compile-re
+  :compile-re fpga-altera-quartus-compile-re
   :buf fpga-altera-quartus-shell-buf
   :font-lock-kwds fpga-altera-quartus-shell-font-lock)
 
