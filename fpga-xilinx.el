@@ -169,6 +169,89 @@ simulation inside Vivado."
     (fpga-xilinx-vivado-compile cmd)))
 
 
+;;;; Vivado XDC mode
+(defconst fpga-xilinx-vivado-xdc-commands
+  '(;; `fpga-xilinx-vivado-shell-commands' XDC commands section
+    "add_cells_to_pblock"          "all_clocks"                    "all_cpus"
+    "all_dsps"                     "all_fanin"                     "all_fanout"
+    "all_ffs"                      "all_hsios"                     "all_inputs"
+    "all_latches"                  "all_outputs"                   "all_rams"
+    "all_registers"                "connect_debug_cores"           "connect_debug_port"
+    "create_clock"                 "create_debug_core"             "create_debug_port"
+    "create_generated_clock"       "create_macro"                  "create_pblock"
+    "create_property"              "create_waiver"                 "current_design"
+    "current_instance"             "delete_macros"                 "delete_pblocks"
+    "filter"                       "get_bel_pins"                  "get_bels"
+    "get_cells"                    "get_clocks"                    "get_debug_cores"
+    "get_debug_ports"              "get_generated_clocks"          "get_hierarchy_separator"
+    "get_iobanks"                  "get_macros"                    "get_nets"
+    "get_nodes"                    "get_package_pins"              "get_path_groups"
+    "get_pblocks"                  "get_pins"                      "get_pips"
+    "get_pkgpin_bytegroups"        "get_pkgpin_nibbles"            "get_ports"
+    "get_property"                 "get_site_pins"                 "get_site_pips"
+    "get_sites"                    "get_slrs"                      "get_speed_models"
+    "get_tiles"                    "get_timing_arcs"               "get_wires"
+    "group_path"                   "make_diff_pair_ports"          "remove_cells_from_pblock"
+    "reset_operating_conditions"   "reset_switching_activity"      "resize_pblock"
+    "set_bus_skew"                 "set_case_analysis"             "set_clock_groups"
+    "set_clock_latency"            "set_clock_sense"               "set_clock_uncertainty"
+    "set_data_check"               "set_disable_timing"            "set_external_delay"
+    "set_false_path"               "set_hierarchy_separator"       "set_input_delay"
+    "set_input_jitter"             "set_load"                      "set_logic_dc"
+    "set_logic_one"                "set_logic_unconnected"         "set_logic_zero"
+    "set_max_delay"                "set_max_time_borrow"           "set_min_delay"
+    "set_multicycle_path"          "set_operating_conditions"      "set_output_delay"
+    "set_package_pin_val"          "set_power_opt"                 "set_propagated_clock"
+    "set_property"                 "set_switching_activity"        "set_system_jitter"
+    "set_units"                    "update_macro"))
+
+(defconst fpga-xilinx-vivado-xdc-properties
+  '("CLOCK_DEDICATED_ROUTE" "IOSTANDARD" "DRIVE" "DIFF_TERM" "VCCAUX_IO" "SLEW" "FAST" "DCI_CASCADE"
+    "PACKAGE_PIN" "IOB" "LOC"
+    "PROHIBIT"
+    "BITSTREAM.CONFIG.UNUSEDPIN" "BITSTREAM.GENERAL.COMPRESS"))
+
+(defconst fpga-xilinx-vivado-xdc-switches
+  '("name" "period" "clock" "through" "filter" "hierarchical" "hier" "fall_from" "rise_from" "add_delay"
+    "max" "min" "rise_to" "fall_to" "of_objects" "from" "to" "setup" "hold" "end" "start" "of" "group"
+    "physically_exclusive" "asynchronous" "min" "rise_to" "fall_to" "of_objects" "from" "to" "setup" "hold" "of" "group" "asynchronous"
+    "include_generated_clocks" "primitive_group" "pppasynchronous"
+    "intf_net" "dict" "range" "offset" "dir" "type" "vlnv" "net"))
+
+(defconst fpga-xilinx-vivado-xdc-commands-font-lock
+  (eval-when-compile (regexp-opt fpga-xilinx-vivado-xdc-commands 'symbols)))
+
+(defconst fpga-xilinx-vivado-xdc-properties-font-lock
+  (eval-when-compile (regexp-opt fpga-xilinx-vivado-xdc-properties 'symbols)))
+
+(defconst fpga-xilinx-vivado-xdc-switches-font-lock
+  (eval-when-compile (concat "-" (regexp-opt fpga-xilinx-vivado-xdc-switches 'symbols))))
+
+(defconst fpga-xilinx-vivado-xdc-font-lock
+  `((,fpga-xilinx-vivado-xdc-commands-font-lock 0 font-lock-keyword-face)
+    (,fpga-xilinx-vivado-xdc-properties-font-lock 0 font-lock-constant-face)
+    (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face)))
+
+(defun fpga-xilinx-vivado-xdc-capf ()
+  "Vivado XDC completion at point."
+  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
+         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
+         (str (buffer-substring b e))
+         (allcomp (all-completions str (append fpga-xilinx-vivado-xdc-commands
+                                               fpga-xilinx-vivado-xdc-properties
+                                               fpga-xilinx-vivado-xdc-switches))))
+    (list b e allcomp)))
+
+;;;###autoload
+(define-derived-mode fpga-xilinx-vivado-xdc-mode tcl-mode
+  (font-lock-add-keywords 'fpga-xilinx-vivado-xdc-mode fpga-xilinx-vivado-xdc-font-lock 'append)
+  (add-hook 'completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf :local)
+  (setq mode-name "XDC"))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.xdc\\'") 'fpga-xilinx-vivado-xdc-mode))
+
+
 ;;;; Vivado shell
 ;; UG835 Xilinx words converted to text via `pdftotext'
 (defconst fpga-xilinx-vivado-shell-commands
@@ -592,96 +675,25 @@ simulation inside Vivado."
     "setup_ip_static_library"      "write_project_tcl"))
 
 
+(defconst fpga-xilinx-vivado-shell-commands-font-lock
+  (eval-when-compile (regexp-opt fpga-xilinx-vivado-shell-commands 'symbols)))
+
+(defconst fpga-xilinx-vivado-shell-switch-re "\\_<\\(?1:-\\)\\(?2:[a-zA-Z0-9_]+\\)\\_>")
+
+(defconst fpga-xilinx-vivado-shell-font-lock
+  (append `((,fpga-xilinx-vivado-shell-commands-font-lock 0 font-lock-keyword-face)
+            (,fpga-xilinx-vivado-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))
+          fpga-xilinx-vivado-xdc-font-lock))
+
+
 ;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el")
 (fpga-utils-define-shell-mode fpga-xilinx-vivado-shell
   fpga-xilinx-vivado-bin
   fpga-xilinx-vivado--base-cmd
   fpga-xilinx-vivado-shell-commands
   fpga-xilinx-vivado-compile-re
-  fpga-xilinx-vivado-shell-buf)
-
-
-;;;; Vivado XDC mode
-(defconst fpga-xilinx-vivado-xdc-commands
-  '(;; `fpga-xilinx-vivado-shell-commands' XDC commands section
-    "add_cells_to_pblock"          "all_clocks"                    "all_cpus"
-    "all_dsps"                     "all_fanin"                     "all_fanout"
-    "all_ffs"                      "all_hsios"                     "all_inputs"
-    "all_latches"                  "all_outputs"                   "all_rams"
-    "all_registers"                "connect_debug_cores"           "connect_debug_port"
-    "create_clock"                 "create_debug_core"             "create_debug_port"
-    "create_generated_clock"       "create_macro"                  "create_pblock"
-    "create_property"              "create_waiver"                 "current_design"
-    "current_instance"             "delete_macros"                 "delete_pblocks"
-    "filter"                       "get_bel_pins"                  "get_bels"
-    "get_cells"                    "get_clocks"                    "get_debug_cores"
-    "get_debug_ports"              "get_generated_clocks"          "get_hierarchy_separator"
-    "get_iobanks"                  "get_macros"                    "get_nets"
-    "get_nodes"                    "get_package_pins"              "get_path_groups"
-    "get_pblocks"                  "get_pins"                      "get_pips"
-    "get_pkgpin_bytegroups"        "get_pkgpin_nibbles"            "get_ports"
-    "get_property"                 "get_site_pins"                 "get_site_pips"
-    "get_sites"                    "get_slrs"                      "get_speed_models"
-    "get_tiles"                    "get_timing_arcs"               "get_wires"
-    "group_path"                   "make_diff_pair_ports"          "remove_cells_from_pblock"
-    "reset_operating_conditions"   "reset_switching_activity"      "resize_pblock"
-    "set_bus_skew"                 "set_case_analysis"             "set_clock_groups"
-    "set_clock_latency"            "set_clock_sense"               "set_clock_uncertainty"
-    "set_data_check"               "set_disable_timing"            "set_external_delay"
-    "set_false_path"               "set_hierarchy_separator"       "set_input_delay"
-    "set_input_jitter"             "set_load"                      "set_logic_dc"
-    "set_logic_one"                "set_logic_unconnected"         "set_logic_zero"
-    "set_max_delay"                "set_max_time_borrow"           "set_min_delay"
-    "set_multicycle_path"          "set_operating_conditions"      "set_output_delay"
-    "set_package_pin_val"          "set_power_opt"                 "set_propagated_clock"
-    "set_property"                 "set_switching_activity"        "set_system_jitter"
-    "set_units"                    "update_macro"))
-
-(defconst fpga-xilinx-vivado-xdc-properties
-  '("CLOCK_DEDICATED_ROUTE" "IOSTANDARD" "DRIVE" "DIFF_TERM" "VCCAUX_IO" "SLEW" "FAST" "DCI_CASCADE"
-    "PACKAGE_PIN" "IOB" "LOC"
-    "PROHIBIT"
-    "BITSTREAM.CONFIG.UNUSEDPIN" "BITSTREAM.GENERAL.COMPRESS"))
-
-(defconst fpga-xilinx-vivado-xdc-switches
-  '("name" "period" "clock" "through" "filter" "hierarchical" "hier" "fall_from" "rise_from" "add_delay"
-    "max" "min" "rise_to" "fall_to" "of_objects" "from" "to" "setup" "hold" "end" "start" "of" "group"
-    "physically_exclusive" "asynchronous" "min" "rise_to" "fall_to" "of_objects" "from" "to" "setup" "hold" "of" "group" "asynchronous"
-    "include_generated_clocks" "primitive_group" "pppasynchronous"
-    "intf_net" "dict" "range" "offset" "dir" "type" "vlnv" "net"))
-
-(defconst fpga-xilinx-vivado-xdc-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-xilinx-vivado-xdc-commands 'symbols)))
-
-(defconst fpga-xilinx-vivado-xdc-properties-font-lock
-  (eval-when-compile (regexp-opt fpga-xilinx-vivado-xdc-properties 'symbols)))
-
-(defconst fpga-xilinx-vivado-xdc-switches-font-lock
-  (eval-when-compile (concat "-" (regexp-opt fpga-xilinx-vivado-xdc-switches 'symbols))))
-
-(defconst fpga-xilinx-vivado-xdc-font-lock
-  `((,fpga-xilinx-vivado-xdc-commands-font-lock 0 font-lock-keyword-face)
-    (,fpga-xilinx-vivado-xdc-properties-font-lock 0 font-lock-constant-face)
-    (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face)))
-
-(defun fpga-xilinx-vivado-xdc-capf ()
-  "Vivado XDC completion at point."
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str (append fpga-xilinx-vivado-xdc-commands
-                                               fpga-xilinx-vivado-xdc-properties
-                                               fpga-xilinx-vivado-xdc-switches))))
-    (list b e allcomp)))
-
-;;;###autoload
-(define-derived-mode fpga-xilinx-vivado-xdc-mode tcl-mode
-  (font-lock-add-keywords 'fpga-xilinx-vivado-xdc-mode fpga-xilinx-vivado-xdc-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf :local)
-  (setq mode-name "XDC"))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.xdc\\'") 'fpga-xilinx-vivado-xdc-mode))
+  fpga-xilinx-vivado-shell-buf
+  fpga-xilinx-vivado-shell-font-lock)
 
 
 (provide 'fpga-xilinx)

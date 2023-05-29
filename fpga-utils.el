@@ -109,12 +109,13 @@ With `prefix-arg', delete NUM-CHARS characters."
      (compile command)
      (fpga-xilinx-vivado-compilation-mode)))
 
-(defmacro fpga-utils-define-shell-mode (name bin base-cmd shell-commands compile-re buf)
+(defmacro fpga-utils-define-shell-mode (name bin base-cmd shell-commands compile-re buf font-lock-kwds)
   (declare (indent 1) (debug 1))
   (let ((mode-fn (intern (concat (symbol-name name) "-mode")))
         (capf-fn (intern (concat (symbol-name name) "-capf")))
         (mode-map (intern (concat (symbol-name name) "-mode-map")))
-        (send-line-or-region-fn (intern (concat (symbol-name name) "-send-line-or-region-and-step"))))
+        (send-line-or-region-fn (intern (concat (symbol-name name) "-send-line-or-region-and-step")))
+        (mode-hook (intern (concat (symbol-name name) "-mode-hook"))))
 
     ;; First define a function for `completion-at-point-functions'
     `(progn
@@ -172,8 +173,7 @@ Enables auto-completion and syntax highlighting."
            (with-current-buffer buf
              (,mode-fn))))
 
-
-       ;; And finally, define a shell send line function, meant to be used in tcl buffers
+       ;; Define a shell send line function, meant to be used in tcl buffers
        (defun ,send-line-or-region-fn ()
          "Send the current line to the its shell and step to the next line.
 When the region is active, send the region instead."
@@ -188,7 +188,11 @@ When the region is active, send the region instead."
                    end (1+ to)))
            (comint-send-string proc (buffer-substring-no-properties from to))
            (comint-send-string proc "\n")
-           (goto-char end))))))
+           (goto-char end)))
+
+       ;; Add font-lock keywords for extra syntax highlighting
+       (when ,font-lock-kwds
+         (add-hook ',mode-hook (lambda () (font-lock-add-keywords nil ,font-lock-kwds 'append)))))))
 
 
 
