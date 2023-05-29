@@ -226,10 +226,9 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
     (list b e allcomp)))
 
 ;;;###autoload
-(define-derived-mode fpga-altera-quartus-sdc-mode tcl-mode
+(define-derived-mode fpga-altera-quartus-sdc-mode tcl-mode "SDC"
   (font-lock-add-keywords 'fpga-altera-quartus-sdc-mode fpga-altera-quartus-sdc-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-sdc-capf :local)
-  (setq mode-name "SDC"))
+  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-sdc-capf :local))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.sdc\\'") 'fpga-altera-quartus-sdc-mode))
@@ -450,10 +449,9 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
 
 ;;;; Quartus QSF mode
 ;;;###autoload
-(define-derived-mode fpga-altera-quartus-qsf-mode tcl-mode
+(define-derived-mode fpga-altera-quartus-qsf-mode tcl-mode "QSF"
   (font-lock-add-keywords 'fpga-altera-quartus-qsf-mode fpga-altera-quartus-shell-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-shell-capf :local)
-  (setq mode-name "QSF"))
+  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-shell-capf :local))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.qsf\\'") 'fpga-altera-quartus-qsf-mode))

@@ -254,10 +254,9 @@ simulation inside Vivado."
     (list b e allcomp)))
 
 ;;;###autoload
-(define-derived-mode fpga-xilinx-vivado-xdc-mode tcl-mode
+(define-derived-mode fpga-xilinx-vivado-xdc-mode tcl-mode "XDC"
   (font-lock-add-keywords 'fpga-xilinx-vivado-xdc-mode fpga-xilinx-vivado-xdc-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf :local)
-  (setq mode-name "XDC"))
+  (add-hook 'completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf :local))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.xdc\\'") 'fpga-xilinx-vivado-xdc-mode))

@@ -99,7 +99,7 @@
   "Create OUTFILE with one file of FILELIST per line."
   (with-temp-file outfile
     (dolist (line filelist)
-      (insert (concat line "\n")))))
+      (insert line "\n"))))
 
 (defun fpga-utils-tags-create (out-dir in-file file-list-fn)
   "Generate tags from filelist.
@@ -212,6 +212,7 @@ ARGS is a property list."
          ;;   no actual file.  If this function is before capf-fn in the
          ;;   `comint-dynamic-complete-functions' hook, it will never execute.
          (when (locate-library "company")
+           (require 'company)
            (setq-local comint-dynamic-complete-functions '(comint-c-a-p-replace-by-expanded-history))
            (setq-local company-backends '(company-files company-capf))
            (company-mode 1))
