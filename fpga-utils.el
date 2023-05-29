@@ -87,6 +87,110 @@ With `prefix-arg', delete NUM-CHARS characters."
         (comint-send-string proc "exit\n")
       (delete-char num-chars))))
 
+(defmacro fpga-utils-define-compilation-mode (name desc docstring compile-re buf-name)
+  "Macro to define a compilation derived mode for a FPGA error regexp."
+  (declare (indent 1) (debug 1))
+  `(define-compilation-mode ,name ,desc ,docstring
+     (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
+     (setq-local compilation-error-regexp-alist-alist ,compile-re)
+     (rename-buffer ,buf-name)
+     (setq truncate-lines t)
+     (goto-char (point-max))))
+
+(defmacro fpga-utils-define-compile-fn (name docstring buf)
+  "Macro to define a function to compile with error regexp highlighting."
+  (declare (indent 1) (debug 1))
+  `(defun ,name (command)
+     ,docstring
+     (when (get-buffer ,buf)
+       (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
+           (kill-buffer ,buf)
+         (user-error "Aborted")))
+     (compile command)
+     (fpga-xilinx-vivado-compilation-mode)))
+
+(defmacro fpga-utils-define-shell-mode (name bin base-cmd shell-commands compile-re buf)
+  (declare (indent 1) (debug 1))
+  (let ((mode-fn (intern (concat (symbol-name name) "-mode")))
+        (capf-fn (intern (concat (symbol-name name) "-capf")))
+        (mode-map (intern (concat (symbol-name name) "-mode-map")))
+        (send-line-or-region-fn (intern (concat (symbol-name name) "-send-line-or-region-and-step"))))
+
+    ;; First define a function for `completion-at-point-functions'
+    `(progn
+       (defun ,capf-fn ()
+         "Completion at point for shell mode."
+         (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
+                (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
+                (str (buffer-substring b e))
+                (allcomp (all-completions str ,shell-commands)))
+           (list b e allcomp)))
+
+       ;; Define mode-map
+       (defvar ,mode-map
+         (let ((map (make-sparse-keymap)))
+           (define-key map (kbd "C-d") 'fpga-utils-shell-delchar-or-maybe-eof)
+           map)
+         "Keymap.")
+
+       ;; Define minor mode for shell
+       (define-minor-mode ,mode-fn
+         "Shell mode."
+         :global nil
+         (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
+         (setq-local compilation-error-regexp-alist-alist ,compile-re)
+         (rename-buffer ,buf)
+         (setq truncate-lines t)
+         (goto-char (point-max))
+         ;; If `company' is present, remove `comint-filename-completion' and try to rely on `company-files':
+         ;; - `comint-filename-completion' has a bug, causing an issue with CAPF. It
+         ;;   returns non-nil even though there is no proper file completion,
+         ;;   e.g. trying to complete "syn", would cause comint detecting a potential
+         ;;   file with results from `comint--complete-file-name-data', while there is
+         ;;   no actual file.  If this function is before capf-fn in the
+         ;;   `comint-dynamic-complete-functions' hook, it will never execute.
+         (when (locate-library "company")
+           (setq-local comint-dynamic-complete-functions '(comint-c-a-p-replace-by-expanded-history))
+           (setq-local company-backends '(company-files company-capf))
+           (company-mode 1))
+         (add-hook 'comint-dynamic-complete-functions #',capf-fn :local))
+
+       ;; Defin shell function
+       (defun ,name ()
+         "Spawn an improved shell.
+Enables auto-completion and syntax highlighting."
+         (interactive)
+         (unless ,bin
+           (error ,(concat "Could not find " (symbol-name bin) " in $PATH.'")))
+         (when (get-buffer ,buf)
+           (if (y-or-n-p (format "Buffer %s is in use, kill process and start new shell?" ,buf))
+               (kill-buffer ,buf)
+             (user-error "Aborted")))
+         (let* ((cmd ,base-cmd)
+                buf)
+           (setq buf (compile cmd t))
+           (with-current-buffer buf
+             (,mode-fn))))
+
+
+       ;; And finally, define a shell send line function, meant to be used in tcl buffers
+       (defun ,send-line-or-region-fn ()
+         "Send the current line to the its shell and step to the next line.
+When the region is active, send the region instead."
+         (interactive)
+         (let (from to end (proc (get-buffer-process ,buf)))
+           (if (use-region-p)
+               (setq from (region-beginning)
+                     to (region-end)
+                     end to)
+             (setq from (line-beginning-position)
+                   to (line-end-position)
+                   end (1+ to)))
+           (comint-send-string proc (buffer-substring-no-properties from to))
+           (comint-send-string proc "\n")
+           (goto-char end))))))
+
+
 
 ;;;; Compilation-re
 (defvar fpga-utils-compilation-uvm-re

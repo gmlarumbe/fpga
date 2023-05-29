@@ -35,11 +35,11 @@
 
 (defcustom fpga-feature-list '(xilinx altera lattice cadence siemens synopsys)
   "Which FPGA/ASIC features to load."
-  :type '(set (const :tag "AMD/Xilinx Vivado."
+  :type '(set (const :tag "AMD/Xilinx Vivado tools."
                 xilinx)
-              (const :tag "Intel/Altera Quartus."
+              (const :tag "Intel/Altera Quartus tools."
                 altera)
-              (const :tag "Lattice Diamond."
+              (const :tag "Lattice Diamond tools."
                 lattice)
               (const :tag "Cadence tools."
                 synopsys)
@@ -69,16 +69,22 @@ FEATURES can be a single feature or a list of features."
 
 ;;;; Core
 (require 'fpga-utils)
+
 (fpga-when-feature 'xilinx
   (require 'fpga-xilinx))
+
 (fpga-when-feature 'altera
   (require 'fpga-altera))
+
 (fpga-when-feature 'lattice
   (require 'fpga-lattice))
+
 (fpga-when-feature 'cadence
   (require 'fpga-cadence))
+
 (fpga-when-feature 'siemens
   (require 'fpga-siemens))
+
 (fpga-when-feature 'synopsys
   (require 'fpga-synopsys))
 

@@ -23,6 +23,7 @@
 ;;; Commentary:
 
 ;; FPGA Lattice Utilities
+;;  - TODO:
 
 ;;; Code:
 
@@ -54,6 +55,7 @@
   :type 'string
   :group 'fpga-lattice)
 
+;; TODO
 (defcustom fpga-lattice-diamond-syn-script
   '("synth_design -rtl"
     "synth_design"
@@ -70,20 +72,35 @@ Each string of the list corresponds to one statement of the TCL input file."
 
 
 ;;;; Compilation-re
-(defvar fpga-lattice-compile-re-diamond
+(defvar fpga-lattice-diamond-compile-re
   '((lattice-error     "\\(?1:^ERROR\\) -"                                                                    1 nil nil 2 nil (1 compilation-error-face))
-    (lattice-warning   "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\) \\(?3:[a-zA-Z0-9\./_-]+\\)(\\(?4:[0-9]+\\)):" 3 4   nil 1 nil (1 compilation-warning-face) (2 fpga-lattice-compile-binary-face))
-    (lattice-warning2  "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\)"                                              1 nil nil 1 nil (1 compilation-warning-face) (2 fpga-lattice-compile-binary-face))
+    (lattice-warning   "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\) \\(?3:[a-zA-Z0-9\./_-]+\\)(\\(?4:[0-9]+\\)):" 3 4   nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-bin-face))
+    (lattice-warning2  "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\)"                                              1 nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-bin-face))
     (lattice-warning3  "\\(?1:^WARNING\\) -"                                                                  1 nil nil 1 nil (1 compilation-warning-face)))
   "Lattice Diamond regexps.")
 
 
+(fpga-utils-define-compilation-mode fpga-lattice-diamond-compilation-mode
+                                    "Diamond"
+                                    "Diamond Compilation mode."
+                                    fpga-lattice-diamond-compile-re
+                                    fpga-lattice-diamond-buf)
+
+(fpga-utils-define-compile-fn fpga-lattice-diamond-compile
+                              "Compile Diamond COMMAND with error regexp highlighting."
+                              fpga-lattice-diamond-buf)
+
+
+
+;;;; Synthesis
+;; TODO
+
+
+;;;; Tags
+;; TODO: Analyze the .prj file and check how files are added
+;; Maybe download the evaluation version and check a test project
+
 ;;;; Diamond-TCL Shell
-(defvar fpga-lattice-diamond-shell-bin (executable-find "diamondc"))
-(defvar fpga-lattice-diamond-shell-cmd-switches nil)
-
-(defvar fpga-lattice-diamond-shell-buffer "*diamond-tcl*")
-
 ;; Lattice Diamond User Guide Tcl Scripting section converted to text via `pdftotext'
 (defvar fpga-lattice-diamond-shell-commands
   '(;; Help
@@ -126,68 +143,27 @@ Each string of the list corresponds to one statement of the TCL input file."
     "eco_route" "eco_config"
     ))
 
+;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-lattice.el")
+(fpga-utils-define-shell-mode fpga-lattice-diamond-shell
+  fpga-lattice-diamond-bin
+  fpga-lattice-diamond--base-cmd
+  fpga-lattice-diamond-shell-commands
+  fpga-lattice-diamond-compile-re
+  fpga-lattice-diamond-shell-buf)
 
 
-(defun fpga-lattice-diamond-shell-completion-at-point ()
-  "Used as an element of `completion-at-point-functions'."
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str fpga-lattice-diamond-shell-commands)))
-    (list b e allcomp)))
+;;;; ModesFDC(SDC)/LPF mode
+;; LPF: Logical Preference File:
+;; TODO: Look for reference guide for LPF
+
+;; LDC: Lattice Design Constraints (if using Lattice Synthesis Engine, LSE)
+;; TODO: Look for reference guide for LDC
+
+;; FDC/SDC: FPGA Design Constraints (if using Synplify Pro or Precision)
+;; TODO: Look for reference guide for FDC (SDC for Diamond)
 
 
-(define-minor-mode fpga-lattice-diamond-shell-completion-at-point-mode
-  "Add extensions for Diamond TCL shell.
-Autocompletion based on `diamond' package keywords."
-  :lighter "Diamond"
-  (when (not (equal (buffer-name (current-buffer)) fpga-lattice-diamond-shell-buffer))
-    (error "Not in Diamond shell buffer!"))
-  (make-local-variable 'comint-dynamic-complete-functions) ; Use this variable instead of `completion-at-point-functions' to preserve file-name expansion
-  (if fpga-lattice-diamond-shell-completion-at-point-mode
-      ;; INFO: It seems that without appending, the `fpga-lattice-diamond-shell-completion-at-point' will have precedence
-      ;; over other functions present in `comint-dynamic-complete-functions'
-      (add-to-list 'comint-dynamic-complete-functions #'fpga-lattice-diamond-shell-completion-at-point :append)
-    (delete #'fpga-lattice-diamond-shell-completion-at-point comint-dynamic-complete-functions)))
-
-
-;;;###autoload
-(defun fpga-lattice-diamond-shell ()
-  "Invoke a TCL diamond shell with the proper regexps, suited for compilation."
-  (interactive)
-  (unless fpga-lattice-diamond-shell-bin
-    (error "Could not find diamond in $PATH.  Add it or set `fpga-lattice-diamond-shell-bin'"))
-  (let ((command (concat fpga-lattice-diamond-shell-bin " " (mapconcat #'identity fpga-lattice-diamond-shell-cmd-switches " ")))
-        (bufname fpga-lattice-diamond-shell-buffer)
-        (parser  "synplify"))
-    (larumbe/compilation-interactive command bufname parser)
-    (fpga-lattice-diamond-shell-completion-at-point-mode 1)
-    (company-mode 1)))
-
-
-(defun fpga-lattice-diamond-shell-tcl-send-line-or-region-and-step ()
-  "Send the current line to the inferior shell and step to the next line.
-When the region is active, send the region instead."
-  (interactive)
-  (let (from to end (proc (get-buffer-process fpga-lattice-diamond-shell-buffer)))
-    (if (use-region-p)
-        (setq from (region-beginning)
-              to (region-end)
-              end to)
-      (setq from (line-beginning-position)
-            to (line-end-position)
-            end (1+ to)))
-    (comint-send-string proc (buffer-substring-no-properties from to))
-    (comint-send-string proc "\n")
-    (goto-char end)))
-
-
-;;;; Compilation-re
-(defvar larumbe/compilation-error-re-lattice
-  '((lattice-error     "\\(?1:^ERROR\\) -"                                                                    1 nil nil 2 nil (1 compilation-error-face))
-    (lattice-warning   "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\) \\(?3:[a-zA-Z0-9\./_-]+\\)(\\(?4:[0-9]+\\)):" 3 4   nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-binary-face))
-    (lattice-warning2  "\\(?1:^WARNING\\) - \\(?2:[a-z0-9]+:\\)"                                              1 nil nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-binary-face))
-    (lattice-warning3  "\\(?1:^WARNING\\) -"                                                                  1 nil nil 1 nil (1 compilation-warning-face))))
+;;;;;
 
 
 (provide 'fpga-lattice)

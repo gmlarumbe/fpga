@@ -88,22 +88,15 @@ Each string of the list corresponds to one statement of the TCL input file."
 - vivado-error: errors with line number and column number
 - vivado-error2: errors without file/line number.")
 
-(define-compilation-mode fpga-xilinx-vivado-compilation-mode "Vivado"
-  "Vivado Compilation mode."
-  (setq-local compilation-error-regexp-alist (mapcar #'car fpga-xilinx-vivado-compile-re))
-  (setq-local compilation-error-regexp-alist-alist fpga-xilinx-vivado-compile-re)
-  (rename-buffer fpga-xilinx-vivado-buf)
-  (setq truncate-lines t)
-  (goto-char (point-max)))
+(fpga-utils-define-compilation-mode fpga-xilinx-vivado-compilation-mode
+                                    "Vivado"
+                                    "Vivado Compilation mode."
+                                    fpga-xilinx-vivado-compile-re
+                                    fpga-xilinx-vivado-buf)
 
-(defun fpga-xilinx-vivado-compile (command)
-  "Compile Vivado COMMAND with error regexp highlighting."
-  (when (get-buffer fpga-xilinx-vivado-buf)
-    (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" fpga-xilinx-vivado-buf))
-        (kill-buffer fpga-xilinx-vivado-buf)
-      (user-error "Aborted")))
-  (compile command)
-  (fpga-xilinx-vivado-compilation-mode))
+(fpga-utils-define-compile-fn fpga-xilinx-vivado-compile
+                              "Compile Vivado COMMAND with error regexp highlighting."
+                              fpga-xilinx-vivado-buf)
 
 
 ;;;; Tags
@@ -599,73 +592,13 @@ simulation inside Vivado."
     "setup_ip_static_library"      "write_project_tcl"))
 
 
-(defun fpga-xilinx-vivado-shell-capf ()
-  "Completion at point for Vivado shell."
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str fpga-xilinx-vivado-shell-commands)))
-    (list b e allcomp)))
-
-(defvar fpga-xilinx-vivado-shell-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-d") 'fpga-utils-shell-delchar-or-maybe-eof)
-    map)
-  "Key map for the `fpga-xilinx-vivado-shell-mode'.")
-
-(define-minor-mode fpga-xilinx-vivado-shell-mode
-  "Vivado-Shell mode."
-  :global nil
-  (setq-local compilation-error-regexp-alist (mapcar #'car fpga-xilinx-vivado-compile-re))
-  (setq-local compilation-error-regexp-alist-alist fpga-xilinx-vivado-compile-re)
-  (rename-buffer fpga-xilinx-vivado-shell-buf)
-  (setq truncate-lines t)
-  (goto-char (point-max))
-  ;; If `company' is present, remove `comint-filename-completion' and try to rely on `company-files':
-  ;; - `comint-filename-completion' has a bug, causing an issue with CAPF. It
-  ;;   returns non-nil even though there is no proper file completion,
-  ;;   e.g. trying to complete "syn", would cause comint detecting a potential
-  ;;   file with results from `comint--complete-file-name-data', while there is
-  ;;   no actual file.  If this function is before `fpga-xilinx-vivado-shell-capf'
-  ;;   in the `comint-dynamic-complete-functions' hook, it will never execute.
-  (when (locate-library "company")
-    (setq-local comint-dynamic-complete-functions '(comint-c-a-p-replace-by-expanded-history))
-    (setq-local company-backends '(company-files company-capf))
-    (company-mode 1))
-  (add-hook 'comint-dynamic-complete-functions #'fpga-xilinx-vivado-shell-capf :local))
-
-;;;###autoload
-(defun fpga-xilinx-vivado-shell ()
-  "Spawn an improved Vivado shell.
-Enables auto-completion and syntax highlighting."
-  (interactive)
-  (unless fpga-xilinx-vivado-bin
-    (error "Could not find vivado in $PATH.  Add it or set `fpga-xilinx-vivado-bin'"))
-  (when (get-buffer fpga-xilinx-vivado-shell-buf)
-    (if (y-or-n-p (format "Buffer %s is in use, kill process and start new shell?" fpga-xilinx-vivado-shell-buf))
-        (kill-buffer fpga-xilinx-vivado-shell-buf)
-      (user-error "Aborted")))
-  (let* ((cmd fpga-xilinx-vivado--base-cmd)
-         buf)
-    (setq buf (compile cmd t))
-    (with-current-buffer buf
-      (fpga-xilinx-vivado-shell-mode))))
-
-(defun fpga-xilinx-vivado-shell-send-line-or-region-and-step ()
-  "Send the current line to the Vivado Shell and step to the next line.
-When the region is active, send the region instead."
-  (interactive)
-  (let (from to end (proc (get-buffer-process fpga-xilinx-vivado-shell-buf)))
-    (if (use-region-p)
-        (setq from (region-beginning)
-              to (region-end)
-              end to)
-      (setq from (line-beginning-position)
-            to (line-end-position)
-            end (1+ to)))
-    (comint-send-string proc (buffer-substring-no-properties from to))
-    (comint-send-string proc "\n")
-    (goto-char end)))
+;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el")
+(fpga-utils-define-shell-mode fpga-xilinx-vivado-shell
+  fpga-xilinx-vivado-bin
+  fpga-xilinx-vivado--base-cmd
+  fpga-xilinx-vivado-shell-commands
+  fpga-xilinx-vivado-compile-re
+  fpga-xilinx-vivado-shell-buf)
 
 
 ;;;; Vivado XDC mode
