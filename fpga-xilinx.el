@@ -89,14 +89,15 @@ Each string of the list corresponds to one statement of the TCL input file."
 - vivado-error2: errors without file/line number.")
 
 (fpga-utils-define-compilation-mode fpga-xilinx-vivado-compilation-mode
-                                    "Vivado"
-                                    "Vivado Compilation mode."
-                                    fpga-xilinx-vivado-compile-re
-                                    fpga-xilinx-vivado-buf)
+  :desc "Vivado"
+  :docstring "Vivado Compilation mode."
+  :compile-re fpga-xilinx-vivado-compile-re
+  :buf-name fpga-xilinx-vivado-buf)
 
 (fpga-utils-define-compile-fn fpga-xilinx-vivado-compile
-                              "Compile Vivado COMMAND with error regexp highlighting."
-                              fpga-xilinx-vivado-buf)
+  :docstring "Compile Vivado COMMAND with error regexp highlighting."
+  :buf fpga-xilinx-vivado-buf
+  :comp-mode fpga-xilinx-vivado-compilation-mode)
 
 
 ;;;; Tags
@@ -138,6 +139,8 @@ Each string of the list corresponds to one statement of the TCL input file."
 (defun fpga-xilinx-vivado-syn (xpr-file)
   "Open Vivado project from XPR-FILE and run `fpga-xilinx-vivado-syn-script'."
   (interactive "FXPR File: ")
+  (unless (string= (file-name-extension qpf-file) "xpr")
+    (error "Selected file is not a XPR"))
   (unless fpga-xilinx-vivado-bin
     (error "Binary vivado not found in the $PATH"))
   (unless fpga-xilinx-vivado-syn-script
@@ -160,6 +163,8 @@ Each string of the list corresponds to one statement of the TCL input file."
 It is needed to create simulation scripts first in the GUI, by simply running a
 simulation inside Vivado."
   (interactive "FXPR File: ")
+  (unless (string= (file-name-extension qpf-file) "xpr")
+    (error "Selected file is not a XPR"))
   (unless fpga-xilinx-vivado-bin
     (error "Binary vivado not found in the $PATH"))
   (let* ((project-dir (file-name-directory (expand-file-name xpr-file)))
@@ -230,7 +235,13 @@ simulation inside Vivado."
 (defconst fpga-xilinx-vivado-xdc-font-lock
   `((,fpga-xilinx-vivado-xdc-commands-font-lock 0 font-lock-keyword-face)
     (,fpga-xilinx-vivado-xdc-properties-font-lock 0 font-lock-constant-face)
-    (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face)))
+    (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face)
+    (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face))
+    (,fpga-utils-brackets-re 0 fpga-utils-brackets-face)
+    (,fpga-utils-parenthesis-re 0 fpga-utils-parenthesis-face)
+    (,fpga-utils-curly-braces-re 0 fpga-utils-curly-braces-face)
+    (,fpga-utils-braces-content-re 1 fpga-utils-braces-content-face)
+    (,fpga-utils-punctuation-re 1 fpga-utils-punctuation-face)))
 
 (defun fpga-xilinx-vivado-xdc-capf ()
   "Vivado XDC completion at point."
@@ -678,22 +689,21 @@ simulation inside Vivado."
 (defconst fpga-xilinx-vivado-shell-commands-font-lock
   (eval-when-compile (regexp-opt fpga-xilinx-vivado-shell-commands 'symbols)))
 
-(defconst fpga-xilinx-vivado-shell-switch-re "\\_<\\(?1:-\\)\\(?2:[a-zA-Z0-9_]+\\)\\_>")
-
 (defconst fpga-xilinx-vivado-shell-font-lock
   (append `((,fpga-xilinx-vivado-shell-commands-font-lock 0 font-lock-keyword-face)
-            (,fpga-xilinx-vivado-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))
-          fpga-xilinx-vivado-xdc-font-lock))
+            (,fpga-xilinx-vivado-xdc-commands-font-lock 0 font-lock-keyword-face)
+            (,fpga-xilinx-vivado-xdc-properties-font-lock 0 font-lock-constant-face)
+            (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face))))
 
 
 ;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el")
 (fpga-utils-define-shell-mode fpga-xilinx-vivado-shell
-  fpga-xilinx-vivado-bin
-  fpga-xilinx-vivado--base-cmd
-  fpga-xilinx-vivado-shell-commands
-  fpga-xilinx-vivado-compile-re
-  fpga-xilinx-vivado-shell-buf
-  fpga-xilinx-vivado-shell-font-lock)
+  :bin fpga-xilinx-vivado-bin
+  :base-cmd fpga-xilinx-vivado--base-cmd
+  :shell-commands fpga-xilinx-vivado-shell-commands
+  :compile-re fpga-xilinx-vivado-compile-re
+  :buf fpga-xilinx-vivado-shell-buf
+  :font-lock-kwds fpga-xilinx-vivado-shell-font-lock)
 
 
 (provide 'fpga-xilinx)

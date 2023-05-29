@@ -54,6 +54,45 @@
   "Face for compilation binaries."
   :group 'fpga)
 
+(defvar fpga-utils-brackets-face 'fpga-utils-brackets-face)
+(defface fpga-utils-brackets-face
+  '((t (:foreground "goldenrod")))
+  "Face for brackets []."
+  :group 'fpga)
+
+(defvar fpga-utils-parenthesis-face 'fpga-utils-parenthesis-face)
+(defface fpga-utils-parenthesis-face
+  '((t (:foreground "dark goldenrod")))
+  "Face for parenthesis ()."
+  :group 'fpga)
+
+(defvar fpga-utils-curly-braces-face 'fpga-utils-curly-braces-face)
+(defface fpga-utils-curly-braces-face
+  '((t (:foreground "DarkGoldenrod2")))
+  "Face for curly braces {}."
+  :group 'fpga)
+
+(defvar fpga-utils-braces-content-face 'fpga-utils-braces-content-face)
+(defface fpga-utils-braces-content-face
+  '((t (:foreground "yellow green")))
+  "Face for content between braces: arrays, bit vector width and indexing."
+  :group 'fpga)
+
+(defvar fpga-utils-punctuation-face 'fpga-utils-punctuation-face)
+(defface fpga-utils-punctuation-face
+  '((t (:foreground "burlywood")))
+  "Face for punctuation symbols, e.g:
+!,;:?'=<>*"
+  :group 'fpga)
+
+
+;;;; Constants
+(defconst fpga-utils-brackets-re "\\(\\[\\|\\]\\)")
+(defconst fpga-utils-parenthesis-re "[()]")
+(defconst fpga-utils-curly-braces-re "[{}]")
+(defconst fpga-utils-braces-content-re "\\[\\(?1:[0-9]+\\)\\]")
+(defconst fpga-utils-punctuation-re "\\([!,;:?'=<>&^~%\+-]\\|\\*\\|\\.\\|\\/\\|\|\\)")
+
 
 ;;;; Functions
 (defun fpga-utils-write-file-from-filelist (outfile filelist)
@@ -83,35 +122,50 @@ With `prefix-arg', delete NUM-CHARS characters."
     (if (and (eobp)
              (save-excursion
                (skip-chars-backward " ")
-               (eq (preceding-char) ?%)))
+               (member (preceding-char) '(?% ?>))))
         (comint-send-string proc "exit\n")
       (delete-char num-chars))))
 
-(defmacro fpga-utils-define-compilation-mode (name desc docstring compile-re buf-name)
+(defmacro fpga-utils-define-compilation-mode (name &rest args)
   "Macro to define a compilation derived mode for a FPGA error regexp."
   (declare (indent 1) (debug 1))
-  `(define-compilation-mode ,name ,desc ,docstring
-     (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
-     (setq-local compilation-error-regexp-alist-alist ,compile-re)
-     (rename-buffer ,buf-name)
-     (setq truncate-lines t)
-     (goto-char (point-max))))
+  (let ((desc (plist-get args :desc))
+        (docstring (plist-get args :docstring))
+        (compile-re (plist-get args :compile-re))
+        (buf-name (plist-get args :buf-name)))
+    `(define-compilation-mode ,name ,desc ,docstring
+       (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
+       (setq-local compilation-error-regexp-alist-alist ,compile-re)
+       (rename-buffer ,buf-name)
+       (setq truncate-lines t)
+       (goto-char (point-max)))))
 
-(defmacro fpga-utils-define-compile-fn (name docstring buf)
+(defmacro fpga-utils-define-compile-fn (name &rest args)
   "Macro to define a function to compile with error regexp highlighting."
   (declare (indent 1) (debug 1))
-  `(defun ,name (command)
-     ,docstring
-     (when (get-buffer ,buf)
-       (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
-           (kill-buffer ,buf)
-         (user-error "Aborted")))
-     (compile command)
-     (fpga-xilinx-vivado-compilation-mode)))
+  (let ((docstring (plist-get args :docstring))
+        (buf (plist-get args :buf))
+        (comp-mode (plist-get args :comp-mode)))
+    `(defun ,name (command)
+       ,docstring
+       (when (get-buffer ,buf)
+         (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
+             (kill-buffer ,buf)
+           (user-error "Aborted")))
+       (compile command)
+       (,comp-mode))))
 
-(defmacro fpga-utils-define-shell-mode (name bin base-cmd shell-commands compile-re buf font-lock-kwds)
+(defmacro fpga-utils-define-shell-mode (name &rest args)
   (declare (indent 1) (debug 1))
-  (let ((mode-fn (intern (concat (symbol-name name) "-mode")))
+  (let (;; Keyword args
+        (bin (plist-get args :bin))
+        (base-cmd (plist-get args :base-cmd))
+        (shell-commands (plist-get args :shell-commands))
+        (compile-re (plist-get args :compile-re))
+        (buf (plist-get args :buf))
+        (font-lock-kwds (plist-get args :font-lock-kwds))
+        ;; Internal args
+        (mode-fn (intern (concat (symbol-name name) "-mode")))
         (capf-fn (intern (concat (symbol-name name) "-capf")))
         (mode-map (intern (concat (symbol-name name) "-mode-map")))
         (send-line-or-region-fn (intern (concat (symbol-name name) "-send-line-or-region-and-step")))
@@ -212,6 +266,9 @@ When the region is active, send the region instead."
     (ovm-error    "^\\(?1:OVM_ERROR\\) @ \\(?2:[0-9]+\\): "   1 nil nil 2 nil (2 compilation-line-face))
     (ovm-warning  "^\\(?1:OVM_WARNING\\) @ \\(?2:[0-9]+\\): " 1 nil nil 1 nil (2 compilation-line-face))
     (ovm-info     "^\\(?1:OVM_INFO\\) @ \\(?2:[0-9]+\\): "    1 nil nil 0 nil (2 compilation-line-face))))
+
+(defconst fpga-utils-shell-switch-re "\\_<\\(?1:-\\)\\(?2:[a-zA-Z0-9_]+\\)\\_>")
+
 
 
 (provide 'fpga-utils)

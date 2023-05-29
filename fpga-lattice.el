@@ -81,14 +81,15 @@ Each string of the list corresponds to one statement of the TCL input file."
 
 
 (fpga-utils-define-compilation-mode fpga-lattice-diamond-compilation-mode
-                                    "Diamond"
-                                    "Diamond Compilation mode."
-                                    fpga-lattice-diamond-compile-re
-                                    fpga-lattice-diamond-buf)
+  :desc "Diamond"
+  :docstring "Diamond Compilation mode."
+  :compile-re fpga-lattice-diamond-compile-re
+  :buf-name fpga-lattice-diamond-buf)
 
 (fpga-utils-define-compile-fn fpga-lattice-diamond-compile
-                              "Compile Diamond COMMAND with error regexp highlighting."
-                              fpga-lattice-diamond-buf)
+  :docstring "Compile Diamond COMMAND with error regexp highlighting."
+  :buf fpga-lattice-diamond-buf
+  :comp-mode fpga-lattice-diamond-compilation-mode)
 
 
 

@@ -45,7 +45,7 @@
   :type 'string
   :group 'fpga-altera)
 
-(defcustom fpga-altera-quartus-cmd-opts '("-s")
+(defcustom fpga-altera-quartus-cmd-opts nil
   "Quartus process options."
   :type '(repeat string)
   :group 'fpga-altera)
@@ -60,14 +60,20 @@
   :type 'string
   :group 'fpga-altera)
 
-;; TODO
 (defcustom fpga-altera-quartus-syn-script
-  '("synth_design -rtl"
-    "synth_design"
-    "exit")
+  '("load_package flow"
+    "execute_flow -compile")
   "Quartus script to be run for synthesis.
 Each string of the list corresponds to one statement of the TCL input file."
   :type '(repeat string)
+  :group 'fpga-altera)
+
+(defcustom fpga-altera-quartus-compile-keep-term-color nil
+  "Set to non-nil to keep original terminal quartus_sh colors.
+If nil is kept, regexps will be parsed in compilation derived mode, but
+compilation will need to end before showing the output in its corresponding
+buffer."
+  :type 'boolean
   :group 'fpga-altera)
 
 
@@ -75,21 +81,38 @@ Each string of the list corresponds to one statement of the TCL input file."
 (defconst fpga-altera-quartus--base-cmd
   (concat fpga-altera-quartus-bin " " (mapconcat #'identity fpga-altera-quartus-cmd-opts " ")))
 
+(defconst fpga-altera-quartus--sed-cmd-remove-shell-color "sed -e 's/\x1b\[[0-9;]*m//g'"
+  "Sed command to remove ANSI color from shell output.
+This is needed since the command \"quartus_sh\" will colorize the output by default.
+
+https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-stream.")
 
 ;;;; Compilation
-;; TODO: Intel/Altera
-;; (defconst fpga-altera-quartus-compile-re
-;;   '())
+(defconst fpga-altera-quartus-compile-re
+  '((altera-error "^\\(?1:^Error\\) \\(?2:([0-9]+)\\): .*File: \\(?3:[a-zA-Z0-9\._/\\]+\\) Line: \\(?4:[0-9]+\\)" 3 4 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-error2 "^\\(?1:^Error\\) \\(?2:([0-9]+)\\): " nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-error3 "^\\(?1:^Error:\\) " nil nil nil 2 nil (1 compilation-error-face))
+    (altera-critical "^\\(?1:^Critical Warning\\) \\(?2:([0-9]+)\\): .*File: \\(?3:[a-zA-Z0-9\._/\\]+\\) Line: \\(?4:[0-9]+\\)" 3 4 nil 1 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-critical2 "^\\(?1:^Critical Warning\\) \\(?2:([0-9]+)\\): " nil nil nil 1 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-critical3 "^\\(?1:^Critical Warning:\\) " nil nil nil 1 nil (1 compilation-error-face))
+    (altera-warning "^\\(?1:^Warning\\) \\(?2:([0-9]+)\\): .*File: \\(?3:[a-zA-Z0-9\._/\\]+\\) Line: \\(?4:[0-9]+\\)" 3 4 nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-warning2 "^\\(?1:^Warning\\) \\(?2:([0-9]+)\\): " nil nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-warning3 "^\\(?1:^Warning:\\) " nil nil nil 1 nil (1 compilation-warning-face))
+    (altera-info "^\\(?1:^Info\\) \\(?2:([0-9]+)\\): .*File: \\(?3:[a-zA-Z0-9\._/\\]+\\) Line: \\(?4:[0-9]+\\)" 3 4 nil 0 nil (1 compilation-info-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-info2 "^\\(?1:^Info\\) \\(?2:([0-9]+)\\): " nil nil nil 0 nil (1 compilation-info-face) (2 fpga-utils-compilation-msg-code-face))
+    (altera-info3 "^\\(?1:^Info:\\) " nil nil nil 0 nil (1 compilation-info-face)))
+  "Altera Quartus regexps:")
 
 (fpga-utils-define-compilation-mode fpga-altera-quartus-compilation-mode
-                                    "Quartus"
-                                    "Quartus Compilation mode."
-                                    fpga-altera-quartus-compile-re
-                                    fpga-altera-quartus-buf)
+  :desc "Quartus"
+  :docstring "Quartus Compilation mode."
+  :compile-re fpga-altera-quartus-compile-re
+  :buf-name fpga-altera-quartus-buf)
 
 (fpga-utils-define-compile-fn fpga-altera-quartus-compile
-                              "Compile Quartus COMMAND with error regexp highlighting."
-                              fpga-altera-quartus-buf)
+  :docstring "Compile Quartus COMMAND with error regexp highlighting."
+  :buf fpga-altera-quartus-buf
+  :comp-mode fpga-altera-quartus-compilation-mode)
 
 
 ;;;; Tags
@@ -125,32 +148,134 @@ Each string of the list corresponds to one statement of the TCL input file."
 
 
 ;;;; Synthesis
-;; ...
-;;  - TODO: Check https://www.intel.com/content/www/us/en/docs/programmable/683432/21-3/compilation-with-quartus-sh-flow.html
+;;;###autoload
+(defun fpga-altera-quartus-syn (qpf-file)
+  "Open Quartus project from QPF-FILE and run `fpga-altera-quartus-syn-script'."
+  (interactive "FQPF File: ")
+  (unless (string= (file-name-extension qpf-file) "qpf")
+    (error "Selected file is not a QPF"))
+  (unless fpga-altera-quartus-bin
+    (error "Binary quartus_sh not found in the $PATH"))
+  (unless fpga-altera-quartus-syn-script
+    (error "Empty script to be sourced for quartus"))
+  (let* ((project-dir (file-name-directory (expand-file-name qpf-file)))
+         (project-name (file-name-nondirectory qpf-file))
+         (tmp-dir (file-name-concat temporary-file-directory "fpga/quartus"))
+         (script (progn
+                   (make-directory tmp-dir :parents)
+                   (make-temp-file (concat tmp-dir "/syn_") nil nil (concat "project_open " project-name "\n"
+                                                                            (mapconcat #'identity fpga-altera-quartus-syn-script "\n")))))
+         (cmd (concat "cd " project-dir " && " fpga-altera-quartus--base-cmd " -t " script (unless fpga-altera-quartus-compile-keep-term-color
+                                                                                             (concat " | " fpga-altera-quartus--sed-cmd-remove-shell-color)))))
+    (fpga-altera-quartus-compile cmd)))
+
+
+;;;; Quartus SDC mode
+;; SDC and TimeQuest API Reference Manual:
+;; - https://www.intel.com/content/dam/support/jp/ja/programmable/support-resources/bulk-container/pdfs/literature/manual/mnl-sdctmq-1.pdf
+(defvar fpga-altera-quartus-sdc-commands
+  '(;; sdc
+    "all_clocks" "all_inputs" "all_outputs"
+    "all_registers" "create_clock" "create_generated_clock"
+    "derive_clocks" "get_cells" "get_clocks"
+    "get_nets" "get_pins" "get_ports"
+    "remove_clock_groups" "remove_clock_latency" "remove_clock_uncertainty"
+    "remove_input_delay" "remove_output_delay" "reset_design"
+    "set_clock_groups" "set_clock_latency" "set_clock_uncertainty"
+    "set_false_path" "set_input_delay" "set_max_delay"
+    "set_min_delay" "set_multicycle_path" "set_output_delay"
+    ;; sdc_ext
+    "derive_pll_clocks" "get_assignment_groups" "get_fanins"
+    "get_fanouts" "get_keepers" "get_nodes"
+    "get_partitions" "get_registers" "remove_clock"
+    "set_scc_mode" "set_time_format"
+    ;; sta
+    "check_timing" "create_slack_histogram" "create_timing_netlist"
+    "create_timing_summary" "delete_timing_netlist" "enable_sdc_extension_collections"
+    "get_cell_info" "get_clock_domain_info" "get_clock_fmax_info"
+    "get_clock_info" "get_datasheet" "get_default_sdc_file_names"
+    "get_delay_info" "get_edge_info" "get_net_info"
+    "get_node_info" "get_object_info" "get_partition_info"
+    "get_path_count" "get_path_info" "get_pin_info"
+    "get_point_info" "get_port_info" "get_register_info"
+    "get_timing_paths" "read_sdc" "report_clock_fmax_summary"
+    "report_clock_transfers" "report_clocks" "report_datasheet"
+    "report_min_pulse_width" "report_net_timing" "report_path"
+    "report_sdc" "report_timing" "report_ucp"
+    "timing_netlist_exist" "update_timing_netlist" "use_timequest_style_escaping"
+    "write_sdc"))
+
+(defconst fpga-altera-quartus-sdc-commands-font-lock
+  (eval-when-compile (regexp-opt fpga-altera-quartus-sdc-commands 'symbols)))
+
+(defconst fpga-altera-quartus-sdc-font-lock
+  `((,fpga-altera-quartus-sdc-commands-font-lock 0 font-lock-keyword-face)
+    (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face))
+    (,fpga-utils-brackets-re 0 fpga-utils-brackets-face)
+    (,fpga-utils-parenthesis-re 0 fpga-utils-parenthesis-face)
+    (,fpga-utils-curly-braces-re 0 fpga-utils-curly-braces-face)
+    (,fpga-utils-braces-content-re 1 fpga-utils-braces-content-face)
+    (,fpga-utils-punctuation-re 1 fpga-utils-punctuation-face)))
+
+(defun fpga-altera-quartus-sdc-capf ()
+  "Quartus SDC completion at point."
+  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
+         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
+         (str (buffer-substring b e))
+         (allcomp (all-completions str fpga-altera-quartus-sdc-commands)))
+    (list b e allcomp)))
+
+;;;###autoload
+(define-derived-mode fpga-altera-quartus-sdc-mode tcl-mode
+  (font-lock-add-keywords 'fpga-altera-quartus-sdc-mode fpga-altera-quartus-sdc-font-lock 'append)
+  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-sdc-capf :local)
+  (setq mode-name "SDC"))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.sdc\\'") 'fpga-altera-quartus-sdc-mode))
 
 
 ;;;; Quartus Shell
 ;; Quartus II Scripting Reference Manual: Chapter 3. Tcl Packages & Commands
-;; TODO: Use some of these for syntax highlighting for qsf/qpf files?
+(defvar fpga-altera-quartus-shell-packages
+  '("advanced_timing"
+    "backannotate"
+    "chip_planner"
+    "database_manager"
+    "device"
+    "flow"
+    "incremental_compilation"
+    "insystem_memory_edit"
+    "insystem_source_probe"
+    "iptclgen"
+    "jtag"
+    "logic_analyzer_interface"
+    "misc"
+    "project"
+    "report"
+    "rtl"
+    "sdc"
+    "sdc_ext"
+    "simulator"
+    "sta"
+    "stp"
+    "timing"
+    "timing_assignment"
+    "timing_report"
+    "list_path"))
+
+;; Quartus II Scripting Reference Manual: Chapter 3. Tcl Packages & Commands
 (defvar fpga-altera-quartus-shell-commands
-  '(;; Package
-    "advanced_timing"
-    ;; Functions
+  '(;; Package "advanced_timing"
     "create_p2p_delays" "get_clock_delay_path" "get_delay_path"
     "get_delays_from_clocks" "get_delays_from_keepers" "get_illegal_delay_value"
     "get_max_delay_value" "get_timing_edge_delay" "get_timing_edge_info"
     "get_timing_edges" "get_timing_node_fanin" "get_timing_node_fanout"
     "get_timing_node_info" "get_timing_nodes" "is_legal_delay_value"
     "p2p_timing_cut_exist"
-
-    ;; Package
-    "backannotate"
-    ;; Functions
+    ;; Package "backannotate"
     "get_back_annotation_assignments" "logiclock_back_annotate"
-
-    ;; Package
-    "chip_planner"
-    ;; Functions
+    ;; Package "chip_planner"
     "add_new_cell" "add_new_io" "add_usage"
     "apply_command" "check_netlist_and_save" "check_node"
     "close_chip_planner" "connect_chain" "convert_signal_probes"
@@ -168,77 +293,45 @@ Each string of the list corresponds to one statement of the TCL input file."
     "routing_path" "set_batch_mode" "set_node_info"
     "set_port_info" "set_tile_power_setting" "undo_command"
     "update_node_loc"
-
-    ;; Package
-    "database_manager"
-    ;; Functions
+    ;; Package "database_manager"
     "export_database" "generate_bottom_up_scripts" "import_database"
-
-    ;; Package
-    "device"
-    ;; Functions
+    ;; Package "device"
     "get_family_list" "get_part_info" "get_part_list"
     "report_device_info" "report_family_info" "report_part_info"
-
-    ;; Package
-    "flow"
-    ;; Functions
+    ;; Package "flow"
     "execute_flow" "execute_hc" "execute_module"
-
-    ;; Package
-    "incremental_compilation"
-    ;; Functions
+    ;; Package "incremental_compilation"
     "auto_partition_design" "create_partition" "delete_all_logiclock"
     "delete_all_partitions" "delete_logiclock" "delete_partition"
     "export_partition" "get_logiclock" "get_logiclock_contents"
     "get_partition" "get_partition_file_list" "import_partition"
     "partition_netlist_exists" "set_logiclock" "set_logiclock_contents"
     "set_partition"
-
-    ;; Package
-    "insystem_memory_edit"
-    ;; Functions
+    ;; Package "insystem_memory_edit"
     "begin_memory_edit" "end_memory_edit" "get_editable_mem_instances"
     "read_content_from_memory" "save_content_from_memory_to_file" "update_content_to_memory_from_file"
     "write_content_to_memory"
-
-    ;; Package
-    "insystem_source_probe"
-    ;; Functions
+    ;; Package "insystem_source_probe"
     "end_insystem_source_probe" "get_insystem_source_probe_instance_info" "read_probe_data"
     "read_source_data" "start_insystem_source_probe" "write_source_data"
-
-    ;; Package
-    "iptclgen"
-    ;; Functions
+    ;; Package "iptclgen"
     "compute_pll" "generate_vhdl_simgen_model" "parse_hdl"
     "parse_tcl"
-
-    ;; Package
-    "jtag"
-    ;; Functions
+    ;; Package "jtag"
     "close_device" "device_dr_shift" "device_ir_shift"
     "device_lock" "device_run_test_idle" "device_unlock"
     "device_virtual_dr_shift" "device_virtual_ir_shift" "get_device_names"
     "get_hardware_names" "open_device"
-
-    ;; Package
-    "logic_analyzer_interface"
-    ;; Functions
+    ;; Package "logic_analyzer_interface"
     "begin_logic_analyzer_interface_control" "change_bank_to_output_pin" "end_logic_analyzer_interface_control"
     "get_current_state_of_output_pin" "tristate_output_pin"
-    ;; Package
-    "misc"
-    ;; Functions
+    ;; Package "misc"
     "checksum" "disable_natural_bus_naming" "enable_natural_bus_naming"
     "escape_brackets" "foreach_in_collection" "get_collection_size"
     "get_environment_info" "init_tk" "load"
     "load_package" "post_message" "qexec"
     "qexit" "stopwatch"
-
-    ;; Package
-    "project"
-    ;; Functions
+    ;; Package "project"
     "assignment_group" "create_revision" "delete_revision"
     "execute_assignment_batch" "export_assignments" "get_all_assignment_names"
     "get_all_assignments" "get_all_global_assignments" "get_all_instance_assignments"
@@ -255,10 +348,7 @@ Each string of the list corresponds to one statement of the TCL input file."
     "set_instance_assignment" "set_io_assignment" "set_location_assignment"
     "set_parameter" "set_power_file_assignment" "set_user_option"
     "test_assignment_trait"
-
-    ;; Package
-    "report"
-    ;; Functions
+    ;; Package "report"
     "add_row_to_table" "create_report_panel" "delete_report_panel"
     "get_fitter_resource_usage" "get_number_of_columns" "get_number_of_rows"
     "get_report_panel_column_index" "get_report_panel_data" "get_report_panel_id"
@@ -266,17 +356,11 @@ Each string of the list corresponds to one statement of the TCL input file."
     "get_timing_analysis_summary_results" "load_report" "read_xml_report"
     "save_report_database" "unload_report" "write_report_panel"
     "write_xml_report"
-
-    ;; Package
-    "rtl"
-    ;; Functions
+    ;; Package "rtl"
     "get_rtl_cell_info" "get_rtl_cells" "get_rtl_fanins"
     "get_rtl_fanouts" "get_rtl_pin_info" "get_rtl_pins"
     "load_rtl_netlist" "unload_rtl_netlist"
-
-    ;; Package
-    "sdc"
-    ;; Functions
+    ;; Package "sdc"
     "all_clocks" "all_inputs" "all_outputs"
     "all_registers" "create_clock" "create_generated_clock"
     "derive_clocks" "get_cells" "get_clocks"
@@ -287,10 +371,7 @@ Each string of the list corresponds to one statement of the TCL input file."
     "set_clock_uncertainty" "set_disable_timing" "set_false_path"
     "set_input_delay" "set_input_transition" "set_max_delay"
     "set_min_delay" "set_multicycle_path" "set_output_delay"
-
-    ;; Package
-    "sdc_ext"
-    ;; Functions
+    ;; Package "sdc_ext"
     "derive_clock_uncertainty" "derive_pll_clocks" "get_assignment_groups"
     "get_fanins" "get_fanouts" "get_keepers"
     "get_nodes" "get_partitions" "get_registers"
@@ -298,10 +379,7 @@ Each string of the list corresponds to one statement of the TCL input file."
     "set_active_clocks" "set_annotated_delay" "set_max_skew"
     "set_net_delay" "set_scc_mode" "set_time_format"
     "set_timing_derate"
-
-    ;; Package
-    "simulator"
-    ;; Functions
+    ;; Package "simulator"
     "compare_vector" "convert_vector" "create_simulation_breakpoint"
     "delete_all_simulation_breakpoint" "delete_simulation_breakpoint" "disable_all_simulation_breakpoint"
     "disable_simulation_breakpoint" "enable_all_simulation_breakpoint" "enable_simulation_breakpoint"
@@ -310,10 +388,7 @@ Each string of the list corresponds to one statement of the TCL input file."
     "initialize_simulation" "partition_vector" "read_from_simulation_memory"
     "release_simulation_value" "run_simulation" "set_simulation_clock"
     "write_to_simulation_memory"
-
-    ;; Package
-    "sta"
-    ;; Functions
+    ;; Package "sta"
     "add_to_collection" "check_timing" "create_report_histogram"
     "create_slack_histogram" "create_timing_netlist" "create_timing_summary"
     "delete_timing_netlist" "enable_ccpp_removal" "enable_sdc_extension_collections"
@@ -336,32 +411,44 @@ Each string of the list corresponds to one statement of the TCL input file."
     "set_operating_conditions" "timing_netlist_exist" "update_timing_netlist"
     "use_timequest_style_escaping"
     "write_sdc"
-
-    ;; Package
-    "stp"
-    ;; Functions
+    ;; Package "stp"
     "close_session" "open_session" "run"
     "run_multiple_end" "run_multiple_start" "stop"
-
-    ;; Package
-    "timing"
-    ;; Functions
+    ;; Package "timing"
     "compute_slack_on_edges" "create_timing_netlist" "delete_timing_netlist"
     "remove_timing_tables" "report_timing"
-
-    ;; Package
-    "timing_assignment"
-    ;; Functions
+    ;; Package "timing_assignment"
     "create_base_clock" "create_relative_clock" "get_clocks"
     "set_clock_latency" "set_clock_uncertainty" "set_input_delay"
     "set_multicycle_assignment" "set_output_delay" "set_timing_cut_assignment"
-
-    ;; Package
-    "timing_report"
-    ;; Functions
+    ;; Package "timing_report"
     "list_path"
-    ))
+    ;; Other builtins (not in the reference guide)
+    "help"))
 
+(defconst fpga-altera-quartus-shell-packages-font-lock
+  (eval-when-compile (regexp-opt fpga-altera-quartus-shell-packages 'symbols)))
+
+(defconst fpga-altera-quartus-shell-commands-font-lock
+  (eval-when-compile (regexp-opt fpga-altera-quartus-shell-commands 'symbols)))
+
+(defconst fpga-altera-quartus-shell-font-lock
+  (append `((,fpga-altera-quartus-shell-commands-font-lock 0 font-lock-keyword-face)
+            (,fpga-altera-quartus-shell-packages-font-lock 0 font-lock-function-name-face)
+            (,fpga-altera-quartus-sdc-commands-font-lock 0 font-lock-keyword-face)
+            (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))))
+
+;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el")
+(fpga-utils-define-shell-mode fpga-altera-quartus-shell
+  :bin fpga-altera-quartus-bin
+  :base-cmd (concat fpga-altera-quartus--base-cmd " -s")
+  :shell-commands fpga-altera-quartus-shell-commands
+  :comile-re fpga-altera-quartus-compile-re
+  :buf fpga-altera-quartus-shell-buf
+  :font-lock-kwds fpga-altera-quartus-shell-font-lock)
+
+
+;;;; Quartus System Console
 ;; Quartus 22.1 System Console Tcl and Toolkit Command Reference guide:
 (defvar fpga-altera-quartus-shell-system-console-commands
   '(;; 1. System Console Tcl Command Reference
@@ -481,72 +568,34 @@ Each string of the list corresponds to one statement of the TCL input file."
     ;; 2.2.12. _hw.tcl Toolkit Properties
     ))
 
+;; (defconst fpga-altera-quartus-shell-commands-font-lock
+;;   (eval-when-compile (regexp-opt fpga-altera-quartus-shell-commands 'symbols)))
+
+;; (defconst fpga-altera-quartus-shell-font-lock
+;;   (append `((,fpga-altera-quartus-shell-commands-font-lock 0 font-lock-keyword-face)
+;;             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))
+;;           fpga-altera-quartus-sdc-font-lock))
+
 ;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el")
-(fpga-utils-define-shell-mode fpga-altera-quartus-shell
-  fpga-altera-quartus-bin
-  fpga-altera-quartus--base-cmd
-  fpga-altera-quartus-shell-commands
-  fpga-altera-quartus-compile-re
-  fpga-altera-quartus-shell-buf)
+;; TODO:
+(fpga-utils-define-shell-mode fpga-altera-quartus-system-console
+  :bin fpga-altera-quartus-bin
+  :base-cmd (concat fpga-altera-quartus--base-cmd " -s")
+  :shell-commands fpga-altera-quartus-shell-commands
+  :comile-re fpga-altera-quartus-compile-re
+  :buf fpga-altera-quartus-shell-buf
+  :font-lock-kwds fpga-altera-quartus-shell-font-lock)
 
 
-;;;; Quartus SDC mode
-;; SDC and TimeQuest API Reference Manual:
-;; - https://www.intel.com/content/dam/support/jp/ja/programmable/support-resources/bulk-container/pdfs/literature/manual/mnl-sdctmq-1.pdf
-(defvar fpga-altera-quartus-sdc-commands
-  '(;; sdc
-    "all_clocks" "all_inputs" "all_outputs"
-    "all_registers" "create_clock" "create_generated_clock"
-    "derive_clocks" "get_cells" "get_clocks"
-    "get_nets" "get_pins" "get_ports"
-    "remove_clock_groups" "remove_clock_latency" "remove_clock_uncertainty"
-    "remove_input_delay" "remove_output_delay" "reset_design"
-    "set_clock_groups" "set_clock_latency" "set_clock_uncertainty"
-    "set_false_path" "set_input_delay" "set_max_delay"
-    "set_min_delay" "set_multicycle_path" "set_output_delay"
-    ;; sdc_ext
-    "derive_pll_clocks" "get_assignment_groups" "get_fanins"
-    "get_fanouts" "get_keepers" "get_nodes"
-    "get_partitions" "get_registers" "remove_clock"
-    "set_scc_mode" "set_time_format"
-    ;; sta
-    "check_timing" "create_slack_histogram" "create_timing_netlist"
-    "create_timing_summary" "delete_timing_netlist" "enable_sdc_extension_collections"
-    "get_cell_info" "get_clock_domain_info" "get_clock_fmax_info"
-    "get_clock_info" "get_datasheet" "get_default_sdc_file_names"
-    "get_delay_info" "get_edge_info" "get_net_info"
-    "get_node_info" "get_object_info" "get_partition_info"
-    "get_path_count" "get_path_info" "get_pin_info"
-    "get_point_info" "get_port_info" "get_register_info"
-    "get_timing_paths" "read_sdc" "report_clock_fmax_summary"
-    "report_clock_transfers" "report_clocks" "report_datasheet"
-    "report_min_pulse_width" "report_net_timing" "report_path"
-    "report_sdc" "report_timing" "report_ucp"
-    "timing_netlist_exist" "update_timing_netlist" "use_timequest_style_escaping"
-    "write_sdc"))
-
-(defconst fpga-altera-quartus-sdc-commands-font-lock
-  (eval-when-compile (regexp-opt fpga-altera-quartus-sdc-commands 'symbols)))
-
-(defconst fpga-altera-quartus-sdc-font-lock
-  `((,fpga-altera-quartus-sdc-commands-font-lock 0 font-lock-keyword-face)))
-
-(defun fpga-altera-quartus-sdc-capf ()
-  "Quartus SDC completion at point."
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str fpga-altera-quartus-sdc-commands)))
-    (list b e allcomp)))
+;;;; Quartus QSF mode
+;;;###autoload
+(define-derived-mode fpga-altera-quartus-qsf-mode tcl-mode
+  (font-lock-add-keywords 'fpga-altera-quartus-qsf-mode fpga-altera-quartus-shell-font-lock 'append)
+  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-shell-capf :local)
+  (setq mode-name "QSF"))
 
 ;;;###autoload
-(define-derived-mode fpga-altera-quartus-sdc-mode tcl-mode
-  (font-lock-add-keywords 'fpga-altera-quartus-sdc-mode fpga-altera-quartus-sdc-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-sdc-capf :local)
-  (setq mode-name "SDC"))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.sdc\\'") 'fpga-altera-quartus-sdc-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.qsf\\'") 'fpga-altera-quartus-qsf-mode))
 
 
 (provide 'fpga-altera)
