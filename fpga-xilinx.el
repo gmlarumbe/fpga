@@ -93,6 +93,7 @@ Each string of the list corresponds to one statement of the TCL input file."
   :compile-re fpga-xilinx-vivado-compile-re
   :buf-name fpga-xilinx-vivado-buf)
 
+;;;###autoload (autoload 'fpga-xilinx-vivado-compile "fpga-xilinx.el")
 (fpga-utils-define-compile-fn fpga-xilinx-vivado-compile
   :docstring "Compile Vivado COMMAND with error regexp highlighting."
   :buf fpga-xilinx-vivado-buf

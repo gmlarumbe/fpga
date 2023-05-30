@@ -75,6 +75,7 @@
   :compile-re fpga-lattice-diamond-compile-re
   :buf-name fpga-lattice-diamond-buf)
 
+;;;###autoload (autoload 'fpga-lattice-diamond-compile "fpga-lattice.el")
 (fpga-utils-define-compile-fn fpga-lattice-diamond-compile
   :docstring "Compile Diamond COMMAND with error regexp highlighting."
   :buf fpga-lattice-diamond-buf

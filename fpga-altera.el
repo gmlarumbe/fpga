@@ -107,6 +107,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
   :compile-re fpga-altera-quartus-compile-re
   :buf-name fpga-altera-quartus-buf)
 
+;;;###autoload (autoload 'fpga-altera-quartus-compile "fpga-altera.el")
 (fpga-utils-define-compile-fn fpga-altera-quartus-compile
   :docstring "Compile Quartus COMMAND with error regexp highlighting."
   :buf fpga-altera-quartus-buf
@@ -139,6 +140,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
             (display-warning :warning (format "Error processing qsf: %s\nFile \"%s\" set as SEARCH_PATH is not an existing directory!" qsf-file file-name))))))
     (delete-dups (nreverse file-list))))
 
+;;;###autoload
 (defun fpga-altera-quartus-tags (out-dir qsf-file)
   "Generate tags in OUT-DIR from data in QSF-FILE."
   (interactive "DOutput dir: \nFQSF file: ")

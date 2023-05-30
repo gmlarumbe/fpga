@@ -87,6 +87,7 @@
   :compile-re fpga-synopsys-synplify-compile-re
   :buf-name fpga-synopsys-synplify-buf)
 
+;;;###autoload (autoload 'fpga-synopsys-synplify-compile "fpga-synopsys.el")
 (fpga-utils-define-compile-fn fpga-synopsys-synplify-compile
   :docstring "Compile Synplify COMMAND with error regexp highlighting."
   :buf fpga-synopsys-synplify-buf

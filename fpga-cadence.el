@@ -67,6 +67,7 @@
   :compile-re fpga-cadence-xrun-compile-re
   :buf-name fpga-cadence-xrun-buf)
 
+;;;###autoload (autoload 'fpga-cadence-xrun-compile "fpga-cadence.el")
 (fpga-utils-define-compile-fn fpga-cadence-xrun-compile
   :docstring "Compile Xcelium COMMAND with error regexp highlighting."
   :buf fpga-cadence-xrun-buf
