@@ -40,45 +40,35 @@
   :group 'fpga-siemens)
 
 ;;;; Compilation-re
-(defvar fpga-siemens-vsim-uvm-compile-re
-  '((uvm-fatal    "^# \\(?1:UVM_FATAL\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))"   2 3 nil 2 nil (1 compilation-error-face))
-    (uvm-fatal2   "^# \\(?1:UVM_FATAL\\) @"   1 nil nil 2 nil)
-    (uvm-error    "^# \\(?1:UVM_ERROR\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))"   2 3 nil 2 nil (1 compilation-error-face))
-    (uvm-error2   "^# \\(?1:UVM_ERROR\\) @"   1 nil nil 2 nil)
-    (uvm-warning  "^# \\(?1:UVM_WARNING\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))" 2 3 nil 1 nil (1 compilation-warning-face))
-    (uvm-warning2 "^# \\(?1:UVM_WARNING\\) @" 1 nil nil 1 nil)
-    (uvm-info     "^# \\(?1:UVM_INFO\\) \\(?2:[a-zA-Z0-9\./_-]+\\)(\\(?3:[0-9]+\\))"    2 3 nil 0 nil (1 compilation-info-face))
-    (uvm-info2    "^# \\(?1:UVM_INFO\\) @"    1 nil nil 0 nil)))
-
 (defvar fpga-siemens-vsim-compile-re
   '(;; vlog
     (vlog-error   "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:[a-zA-Z0-9./_-]+\\)(\\(?3:[0-9]+\\)): \\(?4:([a-zA-Z0-9_-]+) \\)?" 2 3 nil 2 nil (1 compilation-error-face))
-    (vlog-error2  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:([a-zA-Z0-9_-]+) \\)?\\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
-    (vlog-error3  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:\\(([a-zA-Z0-9_-]+) \\)?\\*\\* while parsing file included at \\(?3:[a-zA-Z0-9./_-]+\\)\\)(\\(?4:[0-9]+\\))\n\\*\\* \\(?5:at\\) \\(?6:[a-zA-Z0-9./_-]+\\)(\\(?7:[0-9]+\\)): " 6 7 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face) (3 compilation-error-face) (4 compilation-line-face) (5 larumbe/compilation-gray-face))
-    (vlog-error4  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:([a-zA-Z0-9_-]+) \\)?" nil nil nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
-    (vlog-error5  "^\\*\\* \\(?1:Error\\): \\(?2:([a-zA-Z0-9_-]+) \\)?" nil nil nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
+    (vlog-error2  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:([a-zA-Z0-9_-]+) \\)?\\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (vlog-error3  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:\\(([a-zA-Z0-9_-]+) \\)?\\*\\* while parsing file included at \\(?3:[a-zA-Z0-9./_-]+\\)\\)(\\(?4:[0-9]+\\))\n\\*\\* \\(?5:at\\) \\(?6:[a-zA-Z0-9./_-]+\\)(\\(?7:[0-9]+\\)): " 6 7 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face) (3 compilation-error-face) (4 compilation-line-face) (5 fpga-utils-compilation-msg-code-face))
+    (vlog-error4  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:([a-zA-Z0-9_-]+) \\)?" nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (vlog-error5  "^\\*\\* \\(?1:Error\\): \\(?2:([a-zA-Z0-9_-]+) \\)?" nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vlog-error6  "^\\*\\* \\(?1:Error\\): " nil nil nil 2 nil (1 compilation-error-face))
     (vlog-warning "^\\*\\* \\(?1:Warning\\)\\( (suppressible)\\)?: \\(?2:[a-zA-Z0-9./_-]+\\)(\\(?3:[0-9]+\\)): \\(?4:([a-zA-Z0-9_-]+) \\)?" 2 3 nil 1 nil (1 compilation-warning-face))
-    (vlog-warning2 "^\\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9_-]+) \\)?" nil nil nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-gray-face))
+    (vlog-warning2 "^\\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9_-]+) \\)?" nil nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face))
     (vlog-warning3 "^\\*\\* \\(?1:Warning\\): " nil nil nil 1 nil (1 compilation-warning-face))
     (vlog-note "^\\*\\* \\(?1:Note\\): \\(?2:[a-zA-Z0-9./_-]+\\)(\\([0-9]+\\)): " 2 3 nil 0 nil (1 compilation-info-face))
     (vlog-note2 "^\\*\\* \\(?1:Note\\): " nil nil nil 0 nil (1 compilation-info-face))
     ;; vsim
-    (vsim-fatal   "^# \\*\\* \\(?1:Fatal\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Instance: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face) (3 larumbe/compilation-gray-face))
-    (vsim-fatal2  "^# \\*\\* \\(?1:Fatal\\): \\(?2:([a-zA-Z0-9./_-]+)\\) \\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
+    (vsim-fatal   "^# \\*\\* \\(?1:Fatal\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Instance: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face) (3 fpga-utils-compilation-msg-code-face))
+    (vsim-fatal2  "^# \\*\\* \\(?1:Fatal\\): \\(?2:([a-zA-Z0-9./_-]+)\\) \\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-fatal3  "^# \\*\\* \\(?1:Fatal\\): \\(?2:[a-zA-Z0-9./_-]+\\)(\\(?3:[0-9]+\\)): " 2 3 nil 2 nil (1 compilation-error-face))
-    (vsim-fatal4  "^# \\*\\* \\(?1:Fatal\\): \\(?2:([a-zA-Z0-9./_-]+)\\) " nil nil nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
+    (vsim-fatal4  "^# \\*\\* \\(?1:Fatal\\): \\(?2:([a-zA-Z0-9./_-]+)\\) " nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-fatal5  "^# \\*\\* \\(?1:Fatal\\): " nil nil nil 2 nil (1 compilation-error-face))
-    (vsim-error   "^# \\*\\* \\(?1:Error\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Instance: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face) (3 larumbe/compilation-gray-face))
-    (vsim-error2  "^# \\*\\* \\(?1:Error\\( (suppressible)\\)?\\): \\(?2:([a-zA-Z0-9./_-]+)\\) \\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
-    (vsim-error3  "^# \\*\\* \\(?1:Error\\( (suppressible)\\)?\\): \\(?2:([a-zA-Z0-9./_-]+)\\)" nil nil nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
-    (vsim-error4  "^# \\*\\* \\(?1:Error\\): \\(?2:([a-zA-Z0-9_-]+) \\)" nil nil nil 2 nil (1 compilation-error-face) (2 larumbe/compilation-gray-face))
+    (vsim-error   "^# \\*\\* \\(?1:Error\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Instance: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face) (3 fpga-utils-compilation-msg-code-face))
+    (vsim-error2  "^# \\*\\* \\(?1:Error\\( (suppressible)\\)?\\): \\(?2:([a-zA-Z0-9./_-]+)\\) \\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (vsim-error3  "^# \\*\\* \\(?1:Error\\( (suppressible)\\)?\\): \\(?2:([a-zA-Z0-9./_-]+)\\)" nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
+    (vsim-error4  "^# \\*\\* \\(?1:Error\\): \\(?2:([a-zA-Z0-9_-]+) \\)" nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-error5  "^# \\*\\* \\(?1:Error\\): " nil nil nil 2 nil (1 compilation-error-face))
-    (vsim-warning "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+) \[[A-Z]+\]\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Instance: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-gray-face) (3 larumbe/compilation-gray-face))
-    (vsim-warning2 "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Region: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\)" 4 nil nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-gray-face) (3 larumbe/compilation-gray-face))
-    (vsim-warning3 "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9_-]+) \\)" nil nil nil 1 nil (1 compilation-warning-face) (2 larumbe/compilation-gray-face))
+    (vsim-warning "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+) \[[A-Z]+\]\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Instance: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face) (3 fpga-utils-compilation-msg-code-face))
+    (vsim-warning2 "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  Region: [/a-zA-Z0-9_-]+ \\)File: \\(?4:[a-zA-Z0-9./_-]+\\)" 4 nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face) (3 fpga-utils-compilation-msg-code-face))
+    (vsim-warning3 "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9_-]+) \\)" nil nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-warning4 "^# \\*\\* \\(?1:Warning\\): " nil nil nil 1 nil (1 compilation-warning-face))
-    (vsim-note "^# \\*\\* \\(?1:Note\\): \\(?2:([a-zA-Z0-9./_-]+)\\) " nil nil nil 0 nil (1 compilation-info-face) (2 larumbe/compilation-gray-face))
+    (vsim-note "^# \\*\\* \\(?1:Note\\): \\(?2:([a-zA-Z0-9./_-]+)\\) " nil nil nil 0 nil (1 compilation-info-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-note2 "^# \\*\\* \\(?1:Note\\): " nil nil nil 0 nil (1 compilation-info-face))
     ;; VHDL severity
     (vsim-vhdl-failure "^# \\*\\* \\(?1:Failure\\): " nil nil nil 2 nil (1 compilation-error-face))
@@ -86,10 +76,22 @@
     (vsim-vhdl-warning "^# \\*\\* \\(?1:Warning\\): " nil nil nil 1 nil (1 compilation-warning-face))
     (vsim-vhdl-note    "^# \\*\\* \\(?1:Note\\): "    nil nil nil 0 nil (1 compilation-info-face))))
 
+(defvar fpga-siemens-vsim-uvm-compile-re
+  (mapcar
+   (lambda (re-elm)
+     (let ((re-elm-car (car re-elm))
+           (re-elm-cdr (cdr re-elm)))
+       (cons re-elm-car (cons (concat "^\\(# \\)?" (string-remove-prefix "^" (car re-elm-cdr))) (cdr re-elm-cdr)))))
+   fpga-utils-compilation-uvm-re)
+  "Questa/ModelSim UVM regexps.
+UVM regexps preceded by '#' character.")
+
+
 (fpga-utils-define-compilation-mode fpga-siemens-vsim-compilation-mode
   :desc "Vsim"
   :docstring "Vsim Compilation mode."
-  :compile-re fpga-siemens-vsim-compile-re
+  :compile-re (append fpga-siemens-vsim-compile-re
+                      fpga-siemens-vsim-uvm-compile-re)
   :buf-name fpga-siemens-vsim-buf)
 
 ;;;###autoload (autoload 'fpga-siemens-vsim-compile "fpga-siemens.el")

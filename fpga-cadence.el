@@ -64,7 +64,9 @@
 (fpga-utils-define-compilation-mode fpga-cadence-xrun-compilation-mode
   :desc "Xcelium"
   :docstring "Xcelium Compilation mode."
-  :compile-re fpga-cadence-xrun-compile-re
+  :compile-re (append fpga-cadence-xrun-compile-re
+                      fpga-utils-compilation-uvm-re
+                      fpga-utils-compilation-ovm-re)
   :buf-name fpga-cadence-xrun-buf)
 
 ;;;###autoload (autoload 'fpga-cadence-xrun-compile "fpga-cadence.el")
