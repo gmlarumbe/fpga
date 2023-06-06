@@ -48,48 +48,52 @@
 
 
 ;;;; Faces
+(defgroup fpga-faces nil
+  "FPGA/ASIC faces."
+  :group 'fpga)
+
 (defconst fpga-utils-compilation-msg-code-face 'fpga-utils-compilation-msg-code-face)
 (defface fpga-utils-compilation-msg-code-face
-  '((t (:foreground "gray55")))
+  '((t :inherit font-lock-comment-face))
   "Face for compilation message codes."
-  :group 'fpga)
+  :group 'fpga-faces)
 
 (defconst fpga-utils-compilation-bin-face 'fpga-utils-compilation-bin-face)
 (defface fpga-utils-compilation-bin-face
-  '((t (:foreground "goldenrod")))
+  '((t :inherit font-lock-function-name-face))
   "Face for compilation binaries."
-  :group 'fpga)
+  :group 'fpga-faces)
 
 (defvar fpga-utils-brackets-face 'fpga-utils-brackets-face)
 (defface fpga-utils-brackets-face
-  '((t (:foreground "goldenrod")))
+  '((t :inherit font-lock-doc-face))
   "Face for brackets []."
-  :group 'fpga)
+  :group 'fpga-faces)
 
 (defvar fpga-utils-parenthesis-face 'fpga-utils-parenthesis-face)
 (defface fpga-utils-parenthesis-face
-  '((t (:foreground "dark goldenrod")))
+  '((t :inherit font-lock-doc-face))
   "Face for parenthesis ()."
-  :group 'fpga)
+  :group 'fpga-faces)
 
 (defvar fpga-utils-curly-braces-face 'fpga-utils-curly-braces-face)
 (defface fpga-utils-curly-braces-face
-  '((t (:foreground "DarkGoldenrod2")))
+  '((t :inherit font-lock-doc-face))
   "Face for curly braces {}."
-  :group 'fpga)
+  :group 'fpga-faces)
 
 (defvar fpga-utils-braces-content-face 'fpga-utils-braces-content-face)
 (defface fpga-utils-braces-content-face
-  '((t (:foreground "yellow green")))
+  '((t :inherit font-lock-constant-face))
   "Face for content between braces: arrays, bit vector width and indexing."
-  :group 'fpga)
+  :group 'fpga-faces)
 
 (defvar fpga-utils-punctuation-face 'fpga-utils-punctuation-face)
 (defface fpga-utils-punctuation-face
-  '((t (:foreground "burlywood")))
+  '((t :inherit font-lock-doc-markup-face))
   "Face for punctuation symbols, e.g:
 !,;:?'=<>*"
-  :group 'fpga)
+  :group 'fpga-faces)
 
 
 ;;;; Constants
