@@ -1,4 +1,4 @@
-<!-- [![MELPA](https://melpa.org/packages/fpga-badge.svg)](https://melpa.org/#/fpga) -->
+[![MELPA](https://melpa.org/packages/fpga-badge.svg)](https://melpa.org/#/fpga)
 
 # fpga.el - FPGA & ASIC Utils for Emacs #
 
@@ -17,9 +17,9 @@ This package provides Emacs utilities for tools of major vendors of FPGA & ASIC:
 
 ## Installation ##
 
-<!-- ### MELPA ### -->
+### MELPA ###
 
-<!-- `fpga` is available on MELPA. -->
+`fpga` is available on MELPA.
 
 ### straight.el ###
 
@@ -73,7 +73,7 @@ Compilation modes with their corresponding regexps are provided for each vendor 
 
 These are used by the package to define functions that perform synthesis/simulation compilations.
 For example, `M-x fpga-xilinx-vivado-syn RET` will prompt the user for an XPR project file.
-Once selected, a Vivado compilation with error message colorized will take place:
+Once selected, a Vivado compilation with error message colorized will take place.
 
 <!-- TODO: Insert screencast of compilation -->
 
@@ -102,13 +102,14 @@ The following major modes are provided to edit constraints and project files:
 
 Running `M-x fpga-xilinx-vivado-tags RET` or `M-x fpga-altera-quartus-tags RET` will prompt for a project file.
 It will be parsed and a `gtags.files` will be generated in the selected directory. This file will later be used to gather tags for the project files.
+
 One of the uses of this feature could be filtering out unused files for definitions/references navigation.
 It can also be useful to generate the list of files used in a project for further hierarchy extraction.
 
 ## Other packages
 
 * [verilog-ext](https://github.com/gmlarumbe/verilog-ext): SystemVerilog Extensions for Emacs
-  * Package to edit VHDL sources
+  * Package to edit SystemVerilog sources
 * [vhdl-ext](https://github.com/gmlarumbe/vhdl-ext): VHDL Extensions for Emacs
   * Package to edit VHDL sources
 
