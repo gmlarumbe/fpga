@@ -27,10 +27,7 @@ To install it via [straight](https://github.com/radian-software/straight.el) wit
 
 ```emacs-lisp
 (straight-use-package 'use-package)
-
-(use-package fpga
-  :straight (:host github :repo "gmlarumbe/fpga"))
-
+(use-package fpga)
 ```
 
 ## Basic config ##
@@ -75,7 +72,10 @@ These are used by the package to define functions that perform synthesis/simulat
 For example, `M-x fpga-xilinx-vivado-syn RET` will prompt the user for an XPR project file.
 Once selected, a Vivado compilation with error message colorized will take place.
 
-<!-- TODO: Insert screencast of compilation -->
+##### Demo video #####
+
+https://github.com/gmlarumbe/fpga/assets/51021955/e9b59d83-ae78-458a-bf48-360d98bdcef2
+
 
 ### Improved interactive shells ###
 
@@ -86,7 +86,10 @@ Shells with syntax highlighting and autocompletion are provided for the followin
   * `fpga-lattice-diamond-shell`
   * `fpga-synopsys-synplify-shell`
 
-<!-- TODO: Insert screencast of shell -->
+##### Demo video #####
+
+https://github.com/gmlarumbe/fpga/assets/51021955/c4be8ebe-26a7-44a3-afe7-82c6928df6f4
+
 
 ### Major-modes ###
 
@@ -96,7 +99,9 @@ The following major modes are provided to edit constraints and project files:
   * `fpga-altera-quartus-sdc-mode` and `fpga-altera-quartus-qsf-mode`
   * `fpga-cadence-vsif-mode`
 
-<!-- TODO: Insert screencast of some of these modes -->
+##### Vivado XDC Mode screenshot #####
+
+<img src="https://github.com/gmlarumbe/fpga/assets/51021955/b9f622c7-9a34-43ad-8323-00157efdb3c5" width=100%>
 
 ### Global Gtags creation from project files ###
 
