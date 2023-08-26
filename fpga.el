@@ -33,7 +33,7 @@
   "FPGA/ASIC Utils."
   :group 'tools)
 
-(defcustom fpga-feature-list '(xilinx altera lattice cadence siemens synopsys)
+(defcustom fpga-feature-list '(xilinx altera lattice cadence siemens synopsys yosys)
   "Which FPGA/ASIC features to load."
   :type '(set (const :tag "AMD/Xilinx Vivado tools."
                 xilinx)
@@ -46,7 +46,9 @@
               (const :tag "Siemens tools."
                 synopsys)
               (const :tag "Synopsys tools."
-                synopsys))
+                synopsys)
+              (const :tag "Yosys tools."
+                yosys))
   :group 'fpga)
 
 
@@ -87,6 +89,9 @@ FEATURES can be a single feature or a list of features."
 
 (fpga-when-feature 'synopsys
   (require 'fpga-synopsys))
+
+(fpga-when-feature 'yosys
+  (require 'fpga-yosys))
 
 
 ;;;; Provide

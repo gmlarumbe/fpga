@@ -66,31 +66,31 @@
 
 (defvar fpga-utils-brackets-face 'fpga-utils-brackets-face)
 (defface fpga-utils-brackets-face
-  '((t :inherit font-lock-doc-face))
+  '((t :inherit font-lock-bracket-face))
   "Face for brackets []."
   :group 'fpga-faces)
 
 (defvar fpga-utils-parenthesis-face 'fpga-utils-parenthesis-face)
 (defface fpga-utils-parenthesis-face
-  '((t :inherit font-lock-doc-face))
+  '((t :inherit font-lock-bracket-face))
   "Face for parenthesis ()."
   :group 'fpga-faces)
 
 (defvar fpga-utils-curly-braces-face 'fpga-utils-curly-braces-face)
 (defface fpga-utils-curly-braces-face
-  '((t :inherit font-lock-doc-face))
+  '((t :inherit font-lock-bracket-face))
   "Face for curly braces {}."
   :group 'fpga-faces)
 
 (defvar fpga-utils-braces-content-face 'fpga-utils-braces-content-face)
 (defface fpga-utils-braces-content-face
-  '((t :inherit font-lock-constant-face))
+  '((t :inherit font-lock-number-face))
   "Face for content between braces: arrays, bit vector width and indexing."
   :group 'fpga-faces)
 
 (defvar fpga-utils-punctuation-face 'fpga-utils-punctuation-face)
 (defface fpga-utils-punctuation-face
-  '((t :inherit font-lock-doc-markup-face))
+  '((t :inherit font-lock-punctuation-face))
   "Face for punctuation symbols, e.g:
 !,;:?'=<>*"
   :group 'fpga-faces)
@@ -283,7 +283,7 @@ When the region is active, send the region instead."
     (ovm-warning  "^\\(?1:OVM_WARNING\\) @ \\(?2:[0-9]+\\): " 1 nil nil 1 nil (2 compilation-line-face))
     (ovm-info     "^\\(?1:OVM_INFO\\) @ \\(?2:[0-9]+\\): "    1 nil nil 0 nil (2 compilation-line-face))))
 
-(defconst fpga-utils-shell-switch-re "\\_<\\(?1:-\\)\\(?2:[a-zA-Z0-9_]+\\)\\_>")
+(defconst fpga-utils-shell-switch-re "\\_<\\(?1:-\\)\\(?2:[-_a-zA-Z0-9_-]+\\)\\_>")
 
 
 
