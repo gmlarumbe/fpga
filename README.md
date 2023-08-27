@@ -4,9 +4,9 @@
 
 # fpga.el - FPGA & ASIC Utils for Emacs #
 
-This package provides Emacs utilities for tools of major vendors of FPGA & ASIC:
+This package provides Emacs utilities for FPGA & ASIC tools of major vendors and open source:
 
-* Xilinx, Altera, Lattice, Cadence, Siemens and Synopsys tools
+* Xilinx, Altera, Lattice, Cadence, Siemens, Synopsys and Yosys tools
 * Synthesis/simulation compilation modes for error regexp matching:
    * Colorize error codes and jump to files where errors appeared
 * Interactive shells with syntax highlighting and auto-completion
@@ -14,6 +14,7 @@ This package provides Emacs utilities for tools of major vendors of FPGA & ASIC:
   * Vivado XDC major-mode
   * Quartus SDC and QSF major-modes
   * Cadence vManager VSIF major-mode
+  * Yosys script major-mode
 * Global Gtags creation from files in Vivado XPR and Quartus QPF project files
 * And some others...
 
@@ -69,6 +70,7 @@ Compilation modes with their corresponding regexps are provided for each vendor 
   * `fpga-cadence-xrun-compilation-mode`
   * `fpga-siemens-vsim-compilation-mode`
   * `fpga-synopsys-synplify-compilation-mode`
+  * `fpga-yosys-compilation-mode`
 
 These are used by the package to define functions that perform synthesis/simulation compilations.
 For example, `M-x fpga-xilinx-vivado-syn RET` will prompt the user for an XPR project file.
@@ -87,6 +89,7 @@ Shells with syntax highlighting and autocompletion are provided for the followin
   * `fpga-altera-quartus-shell`
   * `fpga-lattice-diamond-shell`
   * `fpga-synopsys-synplify-shell`
+  * `fpga-yosys-shell`
 
 ##### Demo video #####
 
@@ -100,6 +103,7 @@ The following major modes are provided to edit constraints and project files:
   * `fpga-xilinx-vivado-xdc-mode`
   * `fpga-altera-quartus-sdc-mode` and `fpga-altera-quartus-qsf-mode`
   * `fpga-cadence-vsif-mode`
+  * `fpga-yosys-ys-mode`
 
 ##### Vivado XDC Mode screenshot #####
 
@@ -119,4 +123,8 @@ It can also be useful to generate the list of files used in a project for furthe
   * Package to edit SystemVerilog sources
 * [vhdl-ext](https://github.com/gmlarumbe/vhdl-ext): VHDL Extensions for Emacs
   * Package to edit VHDL sources
+* [wavedrom-mode](https://github.com/gmlarumbe/wavedrom-mode): Wavedrom integration for Emacs
+  * Edit and render WaveJSON files to create timing diagrams
+* [vunit-mode](https://github.com/embed-me/vunit-mode.git): VUnit Mode for Emacs
+  * Integration of [VUnit](https://github.com/VUnit/vunit) workflow.
 
