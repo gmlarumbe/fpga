@@ -4,7 +4,10 @@
 # to .github/workflows/melpazoid.yml and modifying RECIPE and EXIST_OK below.
 
 name: melpazoid
-on: [push, pull_request]
+on:
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+  schedule:
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
   build:
@@ -26,5 +29,5 @@ jobs:
         # RECIPE is your recipe as written for MELPA:
         RECIPE: (fpga :repo "gmlarumbe/fpga" :fetcher github)
         # set this to false (or remove it) if the package isn't on MELPA:
-        EXIST_OK: false
+        EXIST_OK: true
       run: echo $GITHUB_REF && make -C ~/melpazoid
