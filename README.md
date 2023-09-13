@@ -120,12 +120,10 @@ It can also be useful to generate the list of files used in a project for furthe
 
 ## Other packages
 
-* [verilog-ext](https://github.com/gmlarumbe/verilog-ext): SystemVerilog Extensions for Emacs
-  * Package to edit SystemVerilog sources
-* [vhdl-ext](https://github.com/gmlarumbe/vhdl-ext): VHDL Extensions for Emacs
-  * Package to edit VHDL sources
-* [wavedrom-mode](https://github.com/gmlarumbe/wavedrom-mode): Wavedrom integration for Emacs
-  * Edit and render WaveJSON files to create timing diagrams
-* [vunit-mode](https://github.com/embed-me/vunit-mode.git): VUnit Mode for Emacs
-  * Integration of [VUnit](https://github.com/VUnit/vunit) workflow.
+* [verilog-ts-mode](https://github.com/gmlarumbe/verilog-ts-mode): SystemVerilog Tree-sitter mode
+* [vhdl-ts-mode](https://github.com/gmlarumbe/vhdl-ts-mode): VHDL Tree-sitter mode
+* [verilog-ext](https://github.com/gmlarumbe/verilog-ext): SystemVerilog Extensions
+* [vhdl-ext](https://github.com/gmlarumbe/vhdl-ext): VHDL Extensions
+* [wavedrom-mode](https://github.com/gmlarumbe/wavedrom-mode): edit and render WaveJSON files to create timing diagrams
+* [vunit-mode](https://github.com/embed-me/vunit-mode.git): Integration of [VUnit](https://github.com/VUnit/vunit) workflow
 
