@@ -6,7 +6,7 @@
 ;; URL: https://github.com/gmlarumbe/fpga
 ;; Version: 0.1.0
 ;; Keywords: tools
-;; Package-Requires: ((emacs "29.1") (company "0.9.13"))
+;; Package-Requires: ((emacs "29.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

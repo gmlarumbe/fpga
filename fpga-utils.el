@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'compile)
-(require 'company)
 
 
 ;;;; Custom
@@ -34,9 +33,10 @@
   :type 'string
   :group 'fpga)
 
-(defcustom fpga-utils-completion-use-company-p t
-  "Wheter to use `company-mode' for completion in shells."
-  :type 'function
+(defcustom fpga-utils-shell-file-completion t
+  "Wheter to try completion with files in shells."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
   :group 'fpga)
 
 
@@ -200,11 +200,21 @@ FONT-LOCK-KWDS determine syntax highlighting for the shell mode."
     `(progn
        (defun ,capf-fn ()
          "Completion at point for shell mode."
-         (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-                (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-                (str (buffer-substring b e))
-                (allcomp (all-completions str ,shell-commands)))
-           (list b e allcomp)))
+         (cond (;; Files
+                (let* ((comp (thing-at-point 'filename :no-props))
+                       (dir (when comp (file-name-directory comp)))
+                       (dir-exists (when dir (file-exists-p dir))))
+                  (and fpga-utils-shell-file-completion
+                       dir-exists))
+                (comint-filename-completion))
+               (;; Default
+                (let* ((line-cmds (split-string (buffer-substring-no-properties (comint-line-beginning-position) (point)) " "))
+                       (num-line-cmds (length line-cmds)))
+                  (and (>= (point) (comint-line-beginning-position))
+                       (eq num-line-cmds 1)))
+                (list (save-excursion (skip-chars-backward "/\.a-zA-Z0-9_-") (point))
+                      (point)
+                      ,shell-commands))))
 
        ;; Define mode-map
        (defvar ,mode-map
@@ -222,18 +232,7 @@ FONT-LOCK-KWDS determine syntax highlighting for the shell mode."
          (rename-buffer ,buf)
          (setq truncate-lines t)
          (goto-char (point-max))
-         ;; If `company' is present, remove `comint-filename-completion' and try to rely on `company-files':
-         ;; - `comint-filename-completion' has a bug, causing an issue with CAPF. It
-         ;;   returns non-nil even though there is no proper file completion,
-         ;;   e.g. trying to complete "syn", would cause comint detecting a potential
-         ;;   file with results from `comint--complete-file-name-data', while there is
-         ;;   no actual file.  If this function is before capf-fn in the
-         ;;   `comint-dynamic-complete-functions' hook, it will never execute.
-         (when fpga-utils-completion-use-company-p
-           (setq-local comint-dynamic-complete-functions '(comint-c-a-p-replace-by-expanded-history))
-           (setq-local company-backends '(company-files company-capf))
-           (company-mode 1))
-         (add-hook 'comint-dynamic-complete-functions #',capf-fn :local))
+         (setq-local comint-dynamic-complete-functions '(,capf-fn)))
 
        ;; Defin shell function
        (defun ,name ()
