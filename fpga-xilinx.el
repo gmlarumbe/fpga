@@ -104,6 +104,7 @@ Each string of the list corresponds to one statement of the TCL input file."
   "Get project filelist from Vivado XPR-FILE project file."
   (let ((xpr-dir (file-name-directory xpr-file))
         (file-re "<File Path=\"\\(?1:[$_/\\.a-zA-Z0-9]+\\)\">")
+        (proj-root-env-var "$PPRDIR")
         match file-list)
     (unless (string= (file-name-extension xpr-file) "xpr")
       (user-error "Not an xpr file!"))
@@ -112,12 +113,9 @@ Each string of the list corresponds to one statement of the TCL input file."
       (goto-char (point-min))
       (while (re-search-forward file-re nil :no-error)
         (setq match (match-string-no-properties 1))
-        ;; Replace $PRDIR project tcl variable
-        (when (string-match "$PRDIR" match)
-          (setq match (replace-regexp-in-string (regexp-quote "$PRDIR")
-                                                xpr-dir
-                                                match
-                                                nil 'literal)))
+        ;; Replace $PPRDIR project tcl variable
+        (when (string-match proj-root-env-var match)
+          (setq match (replace-regexp-in-string (regexp-quote proj-root-env-var) xpr-dir match :fixed-case)))
         ;; Convert .xci into .v and downcase (generated output of Vivado)
         (when (string= (file-name-extension match) "xci")
           (setq match (concat (file-name-sans-extension match) ".v")))

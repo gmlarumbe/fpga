@@ -30,7 +30,7 @@
 
 
 ;;;; Custom
-(defcustom fpga-utils-source-extension-re (concat "\\." (regexp-opt '("sv" "svh" "v" "vh" "vhd" "vhdl")) "$")
+(defcustom fpga-utils-source-extension-re (concat "\\." (regexp-opt '("sv" "svh" "v" "vh" "vhd" "vhdl")) "\\'")
   "FPGA source file extension regexp."
   :type 'string
   :group 'fpga)
@@ -135,53 +135,38 @@ With `prefix-arg', delete NUM-CHARS characters."
         (comint-send-string proc "exit\n")
       (delete-char num-chars))))
 
-(defmacro fpga-utils-define-compilation-mode (name &rest args)
+(cl-defmacro fpga-utils-define-compilation-mode (name &key desc docstring compile-re buf-name)
   "Macro to define a compilation derived mode for a FPGA error regexp.
 NAME is the name of the created function.
 ARGS is a property list with :desc, :docstring, :compile-re and :buf-name."
   (declare (indent 1) (debug 1))
-  (let ((desc (plist-get args :desc))
-        (docstring (plist-get args :docstring))
-        (compile-re (plist-get args :compile-re))
-        (buf-name (plist-get args :buf-name)))
-    `(define-compilation-mode ,name ,desc ,docstring
-       (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
-       (setq-local compilation-error-regexp-alist-alist ,compile-re)
-       (rename-buffer ,buf-name)
-       (setq truncate-lines t)
-       (goto-char (point-max)))))
+  `(define-compilation-mode ,name ,desc ,docstring
+     (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
+     (setq-local compilation-error-regexp-alist-alist ,compile-re)
+     (rename-buffer ,buf-name)
+     (setq truncate-lines t)
+     (goto-char (point-max))))
 
-(defmacro fpga-utils-define-compile-fn (name &rest args)
+(cl-defmacro fpga-utils-define-compile-fn (name &key docstring buf comp-mode)
   "Macro to define a function to compile with error regexp highlighting.
 Function will be callable by NAME.
 ARGS is a property list."
   (declare (indent 1) (debug 1))
-  (let ((docstring (plist-get args :docstring))
-        (buf (plist-get args :buf))
-        (comp-mode (plist-get args :comp-mode)))
-    `(defun ,name (command)
-       ,docstring
-       (when (get-buffer ,buf)
-         (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
-             (kill-buffer ,buf)
-           (user-error "Aborted")))
-       (compile command)
-       (,comp-mode))))
+  `(defun ,name (command)
+     ,docstring
+     (when (get-buffer ,buf)
+       (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
+           (kill-buffer ,buf)
+         (user-error "Aborted")))
+     (compile command)
+     (,comp-mode)))
 
-(defmacro fpga-utils-define-shell-mode (name &rest args)
+(cl-defmacro fpga-utils-define-shell-mode (name &key bin base-cmd shell-commands compile-re buf font-lock-kwds)
   "Define shell mode.
 NAME is the name of the created function.
 ARGS is a property list."
   (declare (indent 1) (debug 1))
-  (let (;; Keyword args
-        (bin (plist-get args :bin))
-        (base-cmd (plist-get args :base-cmd))
-        (shell-commands (plist-get args :shell-commands))
-        (compile-re (plist-get args :compile-re))
-        (buf (plist-get args :buf))
-        (font-lock-kwds (plist-get args :font-lock-kwds))
-        ;; Internal args
-        (mode-fn (intern (concat (symbol-name name) "-mode")))
+  (let ((mode-fn (intern (concat (symbol-name name) "-mode")))
         (capf-fn (intern (concat (symbol-name name) "-capf")))
         (mode-map (intern (concat (symbol-name name) "-mode-map")))
         (send-line-or-region-fn (intern (concat (symbol-name name) "-send-line-or-region-and-step")))

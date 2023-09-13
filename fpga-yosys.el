@@ -228,10 +228,12 @@ compilation.  Otherwise use `default-directory'."
     table)
   "Syntax table used in Yosys Script buffers.")
 
-(defvar-keymap fpga-yosys-ys-mode-map
-  :doc "Keymap for `fpga-yosys-ys-mode'."
-  :parent prog-mode-map
-  "C-c C-p" #'fpga-yosys-shell-send-line-or-region-and-step)
+(defvar fpga-yosys-ys-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-p") 'fpga-yosys-shell-send-line-or-region-and-step)
+    map)
+  "Keymap for `fpga-yosys-ys-mode'.")
+
 
 ;;;###autoload
 (define-derived-mode fpga-yosys-ys-mode prog-mode "YS"
