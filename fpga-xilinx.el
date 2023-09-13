@@ -243,17 +243,16 @@ simulation inside Vivado."
 (defun fpga-xilinx-vivado-xdc-capf ()
   "Vivado XDC completion at point."
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str (append fpga-xilinx-vivado-xdc-commands
-                                               fpga-xilinx-vivado-xdc-properties
-                                               fpga-xilinx-vivado-xdc-switches))))
-    (list b e allcomp)))
+         (e (point))
+         (allcomp `(,@fpga-xilinx-vivado-xdc-commands
+                    ,@fpga-xilinx-vivado-xdc-properties
+                    ,@fpga-xilinx-vivado-xdc-switches)))
+    `(,b ,e ,allcomp)))
 
 ;;;###autoload
 (define-derived-mode fpga-xilinx-vivado-xdc-mode tcl-mode "XDC"
   (font-lock-add-keywords 'fpga-xilinx-vivado-xdc-mode fpga-xilinx-vivado-xdc-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf :local))
+  (setq-local completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.xdc\\'") 'fpga-xilinx-vivado-xdc-mode))
@@ -689,7 +688,8 @@ simulation inside Vivado."
   (append `((,fpga-xilinx-vivado-shell-commands-font-lock 0 font-lock-keyword-face)
             (,fpga-xilinx-vivado-xdc-commands-font-lock 0 font-lock-keyword-face)
             (,fpga-xilinx-vivado-xdc-properties-font-lock 0 font-lock-constant-face)
-            (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face))))
+            (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face)
+            (,fpga-utils-shell-switch-re . ((1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face))))))
 
 
 ;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el" "Spawn a Vivado Shell" :interactive)

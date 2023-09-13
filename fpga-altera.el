@@ -219,15 +219,14 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
 (defun fpga-altera-quartus-sdc-capf ()
   "Quartus SDC completion at point."
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str fpga-altera-quartus-sdc-commands)))
-    (list b e allcomp)))
+         (e (point))
+         (allcomp `(,@fpga-altera-quartus-sdc-commands)))
+    `(,b ,e ,allcomp)))
 
 ;;;###autoload
 (define-derived-mode fpga-altera-quartus-sdc-mode tcl-mode "SDC"
   (font-lock-add-keywords 'fpga-altera-quartus-sdc-mode fpga-altera-quartus-sdc-font-lock 'append)
-  (add-hook 'completion-at-point-functions #'fpga-altera-quartus-sdc-capf :local))
+  (setq-local completion-at-point-functions #'fpga-altera-quartus-sdc-capf))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.sdc\\'") 'fpga-altera-quartus-sdc-mode))

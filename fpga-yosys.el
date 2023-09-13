@@ -208,12 +208,12 @@ compilation.  Otherwise use `default-directory'."
 
 ;;;; Yosys script mode
 (defun fpga-yosys-ys-capf ()
-  "Vivado XDC completion at point."
+  "Yosys YS completion at point."
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_-") (point)))
-         (e (save-excursion (skip-chars-forward "a-zA-Z0-9_-") (point)))
-         (str (buffer-substring b e))
-         (allcomp (all-completions str fpga-yosys-shell-commands)))
-    (list b e allcomp)))
+         (e (point))
+         (allcomp `(,@fpga-yosys-shell-commands)))
+    `(,b ,e ,allcomp)))
+
 
 (defconst fpga-yosys-ys-font-lock-defaults
   `(((,fpga-yosys-shell-commands-re . font-lock-keyword-face)
@@ -238,7 +238,7 @@ compilation.  Otherwise use `default-directory'."
 ;;;###autoload
 (define-derived-mode fpga-yosys-ys-mode prog-mode "YS"
   (setq-local font-lock-defaults fpga-yosys-ys-font-lock-defaults)
-  (add-hook 'completion-at-point-functions #'fpga-yosys-ys-capf :local)
+  (setq-local completion-at-point-functions #'fpga-yosys-ys-capf)
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+[\t ]*"))
 
