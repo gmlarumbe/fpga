@@ -130,7 +130,7 @@
   (append `((,fpga-lattice-diamond-shell-commands-font-lock 0 font-lock-keyword-face)
             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))))
 
-;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-altera.el")
+;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-lattice.el" "Spawn a Diamond Shell" :interactive)
 (fpga-utils-define-shell-mode fpga-lattice-diamond-shell
   :bin fpga-lattice-diamond-bin
   :base-cmd fpga-lattice-diamond--base-cmd

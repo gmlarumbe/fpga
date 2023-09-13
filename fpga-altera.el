@@ -436,7 +436,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
             (,fpga-altera-quartus-sdc-commands-font-lock 0 font-lock-keyword-face)
             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))))
 
-;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el")
+;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el" "Spawn a Quartus Shell" :interactive)
 (fpga-utils-define-shell-mode fpga-altera-quartus-shell
   :bin fpga-altera-quartus-bin
   :base-cmd (concat fpga-altera-quartus--base-cmd " -s")

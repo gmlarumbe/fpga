@@ -94,7 +94,7 @@
 
 
 ;;;; Synplify Shell
-;;;###autoload (autoload 'fpga-synopsys-synplify-shell "fpga-synopsys.el")
+;;;###autoload (autoload 'fpga-synopsys-synplify-shell "fpga-synopsys.el" "Spawn a Synplify Shell" :interactive)
 (fpga-utils-define-shell-mode fpga-synopsys-synplify-shell
   :bin fpga-synopsys-synplify-bin
   :base-cmd fpga-synopsys-synplify--base-cmd

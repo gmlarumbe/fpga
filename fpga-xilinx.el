@@ -692,7 +692,7 @@ simulation inside Vivado."
             (,fpga-xilinx-vivado-xdc-switches-font-lock 0 font-lock-constant-face))))
 
 
-;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el")
+;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el" "Spawn a Vivado Shell" :interactive)
 (fpga-utils-define-shell-mode fpga-xilinx-vivado-shell
   :bin fpga-xilinx-vivado-bin
   :base-cmd fpga-xilinx-vivado--base-cmd

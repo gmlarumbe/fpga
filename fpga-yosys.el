@@ -196,7 +196,7 @@ compilation.  Otherwise use `default-directory'."
             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face))
             (,fpga-yosys-punctuation-re 0 fpga-utils-punctuation-face))))
 
-;;;###autoload (autoload 'fpga-yosys-shell "fpga-yosys.el")
+;;;###autoload (autoload 'fpga-yosys-shell "fpga-yosys.el" "Spawn a Yosys Shell" :interactive)
 (fpga-utils-define-shell-mode fpga-yosys-shell
   :bin fpga-yosys-bin
   :base-cmd fpga-yosys--base-cmd
