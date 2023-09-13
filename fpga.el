@@ -4,7 +4,7 @@
 
 ;; Author: Gonzalo Larumbe <gonzalomlarumbe@gmail.com>
 ;; URL: https://github.com/gmlarumbe/fpga
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "29.1"))
 
