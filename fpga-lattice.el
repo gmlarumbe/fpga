@@ -74,7 +74,7 @@
   :compile-re fpga-lattice-diamond-compile-re
   :buf-name fpga-lattice-diamond-buf)
 
-;;;###autoload (autoload 'fpga-lattice-diamond-compile "fpga-lattice.el")
+;;;###autoload (autoload 'fpga-lattice-diamond-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-lattice-diamond-compile
   :docstring "Compile Diamond COMMAND with error regexp highlighting."
   :buf fpga-lattice-diamond-buf
@@ -130,7 +130,7 @@
   (append `((,fpga-lattice-diamond-shell-commands-font-lock 0 font-lock-keyword-face)
             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))))
 
-;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga-lattice.el" "Spawn a Diamond Shell" :interactive)
+;;;###autoload (autoload 'fpga-lattice-diamond-shell "fpga.el" nil t)
 (fpga-utils-define-shell-mode fpga-lattice-diamond-shell
   :bin fpga-lattice-diamond-bin
   :base-cmd fpga-lattice-diamond--base-cmd

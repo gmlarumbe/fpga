@@ -93,7 +93,7 @@ UVM regexps preceded by '#' character.")
                       fpga-siemens-vsim-uvm-compile-re)
   :buf-name fpga-siemens-vsim-buf)
 
-;;;###autoload (autoload 'fpga-siemens-vsim-compile "fpga-siemens.el")
+;;;###autoload (autoload 'fpga-siemens-vsim-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-siemens-vsim-compile
   :docstring "Compile Vsim COMMAND with error regexp highlighting."
   :buf fpga-siemens-vsim-buf

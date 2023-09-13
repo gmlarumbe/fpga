@@ -92,7 +92,7 @@ Each string of the list corresponds to one statement of the TCL input file."
   :compile-re fpga-xilinx-vivado-compile-re
   :buf-name fpga-xilinx-vivado-buf)
 
-;;;###autoload (autoload 'fpga-xilinx-vivado-compile "fpga-xilinx.el")
+;;;###autoload (autoload 'fpga-xilinx-vivado-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-xilinx-vivado-compile
   :docstring "Compile Vivado COMMAND with error regexp highlighting."
   :buf fpga-xilinx-vivado-buf
@@ -124,7 +124,7 @@ Each string of the list corresponds to one statement of the TCL input file."
         (push match file-list)))
     (delete-dups (nreverse file-list))))
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-xilinx-vivado-tags "fpga.el" nil t)
 (defun fpga-xilinx-vivado-tags (out-dir xpr-file)
   "Generate tags in OUT-DIR from data in XPR-FILE."
   (interactive "DOutput dir: \nFXPR file: ")
@@ -132,7 +132,7 @@ Each string of the list corresponds to one statement of the TCL input file."
 
 
 ;;;; Synthesis
-;;;###autoload
+;;;###autoload (autoload 'fpga-xilinx-vivado-syn "fpga.el" nil t)
 (defun fpga-xilinx-vivado-syn (xpr-file)
   "Open Vivado project from XPR-FILE and run `fpga-xilinx-vivado-syn-script'."
   (interactive "FXPR File: ")
@@ -153,7 +153,7 @@ Each string of the list corresponds to one statement of the TCL input file."
 
 
 ;;;; Simulation (XSim)
-;;;###autoload
+;;;###autoload (autoload 'fpga-xilinx-vivado-xsim "fpga.el" nil t)
 (defun fpga-xilinx-vivado-xsim (xpr-file)
   "Open Vivado project from XPR-FILE and run Xsim simulation.
 
@@ -249,7 +249,7 @@ simulation inside Vivado."
                     ,@fpga-xilinx-vivado-xdc-switches)))
     `(,b ,e ,allcomp)))
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-xilinx-vivado-xdc-mode "fpga.el")
 (define-derived-mode fpga-xilinx-vivado-xdc-mode tcl-mode "XDC"
   (font-lock-add-keywords 'fpga-xilinx-vivado-xdc-mode fpga-xilinx-vivado-xdc-font-lock 'append)
   (setq-local completion-at-point-functions #'fpga-xilinx-vivado-xdc-capf))
@@ -692,7 +692,7 @@ simulation inside Vivado."
             (,fpga-utils-shell-switch-re . ((1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face))))))
 
 
-;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga-xilinx.el" "Spawn a Vivado Shell" :interactive)
+;;;###autoload (autoload 'fpga-xilinx-vivado-shell "fpga.el" nil t)
 (fpga-utils-define-shell-mode fpga-xilinx-vivado-shell
   :bin fpga-xilinx-vivado-bin
   :base-cmd fpga-xilinx-vivado--base-cmd

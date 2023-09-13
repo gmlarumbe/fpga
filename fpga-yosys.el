@@ -98,7 +98,7 @@ Default value shows an example of a Yosys script that reads a top module named
   :compile-re fpga-yosys-compile-re
   :buf-name fpga-yosys-buf)
 
-;;;###autoload (autoload 'fpga-yosys-compile "fpga-yosys.el")
+;;;###autoload (autoload 'fpga-yosys-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-yosys-compile
   :docstring "Compile Yosys COMMAND with error regexp highlighting."
   :buf fpga-yosys-buf
@@ -106,7 +106,7 @@ Default value shows an example of a Yosys script that reads a top module named
 
 
 ;;;; Synthesis
-;;;###autoload
+;;;###autoload (autoload 'fpga-yosys-syn "fpga.el" nil t)
 (defun fpga-yosys-syn (&optional output-dir)
   "Run Yosys script from commands in `fpga-yosys-syn-script'.
 
@@ -123,7 +123,7 @@ compilation.  Otherwise use `default-directory'."
                       "\'" (mapconcat #'identity fpga-yosys-syn-script "; ") "\'")))
     (fpga-yosys-compile cmd)))
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-yosys-syn-from-file "fpga.el" nil t)
 (defun fpga-yosys-syn-from-file (file &optional output-dir)
   "Open Yosys script from FILE and run its commands.
 
@@ -196,7 +196,7 @@ compilation.  Otherwise use `default-directory'."
             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face))
             (,fpga-yosys-punctuation-re 0 fpga-utils-punctuation-face))))
 
-;;;###autoload (autoload 'fpga-yosys-shell "fpga-yosys.el" "Spawn a Yosys Shell" :interactive)
+;;;###autoload (autoload 'fpga-yosys-shell "fpga.el" nil t)
 (fpga-utils-define-shell-mode fpga-yosys-shell
   :bin fpga-yosys-bin
   :base-cmd fpga-yosys--base-cmd
@@ -235,7 +235,7 @@ compilation.  Otherwise use `default-directory'."
   "Keymap for `fpga-yosys-ys-mode'.")
 
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-yosys-ys-mode "fpga.el")
 (define-derived-mode fpga-yosys-ys-mode prog-mode "YS"
   (setq-local font-lock-defaults fpga-yosys-ys-font-lock-defaults)
   (setq-local completion-at-point-functions #'fpga-yosys-ys-capf)

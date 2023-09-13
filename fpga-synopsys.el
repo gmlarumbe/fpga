@@ -86,7 +86,7 @@
   :compile-re fpga-synopsys-synplify-compile-re
   :buf-name fpga-synopsys-synplify-buf)
 
-;;;###autoload (autoload 'fpga-synopsys-synplify-compile "fpga-synopsys.el")
+;;;###autoload (autoload 'fpga-synopsys-synplify-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-synopsys-synplify-compile
   :docstring "Compile Synplify COMMAND with error regexp highlighting."
   :buf fpga-synopsys-synplify-buf
@@ -94,7 +94,7 @@
 
 
 ;;;; Synplify Shell
-;;;###autoload (autoload 'fpga-synopsys-synplify-shell "fpga-synopsys.el" "Spawn a Synplify Shell" :interactive)
+;;;###autoload (autoload 'fpga-synopsys-synplify-shell "fpga.el" nil t)
 (fpga-utils-define-shell-mode fpga-synopsys-synplify-shell
   :bin fpga-synopsys-synplify-bin
   :base-cmd fpga-synopsys-synplify--base-cmd

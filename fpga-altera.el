@@ -106,7 +106,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
   :compile-re fpga-altera-quartus-compile-re
   :buf-name fpga-altera-quartus-buf)
 
-;;;###autoload (autoload 'fpga-altera-quartus-compile "fpga-altera.el")
+;;;###autoload (autoload 'fpga-altera-quartus-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-altera-quartus-compile
   :docstring "Compile Quartus COMMAND with error regexp highlighting."
   :buf fpga-altera-quartus-buf
@@ -139,7 +139,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
             (display-warning :warning (format "Error processing qsf: %s\nFile \"%s\" set as SEARCH_PATH is not an existing directory!" qsf-file file-name))))))
     (delete-dups (nreverse file-list))))
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-altera-quartus-tags "fpga.el" nil t)
 (defun fpga-altera-quartus-tags (out-dir qsf-file)
   "Generate tags in OUT-DIR from data in QSF-FILE."
   (interactive "DOutput dir: \nFQSF file: ")
@@ -147,7 +147,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
 
 
 ;;;; Synthesis
-;;;###autoload
+;;;###autoload (autoload 'fpga-altera-quartus-syn "fpga.el" nil t)
 (defun fpga-altera-quartus-syn (qpf-file)
   "Open Quartus project from QPF-FILE and run `fpga-altera-quartus-syn-script'."
   (interactive "FQPF File: ")
@@ -223,7 +223,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
          (allcomp `(,@fpga-altera-quartus-sdc-commands)))
     `(,b ,e ,allcomp)))
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-altera-quartus-sdc-mode "fpga.el")
 (define-derived-mode fpga-altera-quartus-sdc-mode tcl-mode "SDC"
   (font-lock-add-keywords 'fpga-altera-quartus-sdc-mode fpga-altera-quartus-sdc-font-lock 'append)
   (setq-local completion-at-point-functions #'fpga-altera-quartus-sdc-capf))
@@ -435,7 +435,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
             (,fpga-altera-quartus-sdc-commands-font-lock 0 font-lock-keyword-face)
             (,fpga-utils-shell-switch-re (1 fpga-utils-compilation-msg-code-face) (2 font-lock-constant-face)))))
 
-;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga-altera.el" "Spawn a Quartus Shell" :interactive)
+;;;###autoload (autoload 'fpga-altera-quartus-shell "fpga.el" nil t)
 (fpga-utils-define-shell-mode fpga-altera-quartus-shell
   :bin fpga-altera-quartus-bin
   :base-cmd (concat fpga-altera-quartus--base-cmd " -s")
@@ -446,7 +446,7 @@ https://superuser.com/questions/380772/removing-ansi-color-codes-from-text-strea
 
 
 ;;;; Quartus QSF mode
-;;;###autoload
+;;;###autoload (autoload 'fpga-altera-quartus-qsf-mode "fpga.el")
 (define-derived-mode fpga-altera-quartus-qsf-mode tcl-mode "QSF"
   (font-lock-add-keywords 'fpga-altera-quartus-qsf-mode fpga-altera-quartus-shell-font-lock 'append)
   (add-hook 'completion-at-point-functions #'fpga-altera-quartus-shell-capf :local))

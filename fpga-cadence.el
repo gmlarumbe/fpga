@@ -68,7 +68,7 @@
                       fpga-utils-compilation-ovm-re)
   :buf-name fpga-cadence-xrun-buf)
 
-;;;###autoload (autoload 'fpga-cadence-xrun-compile "fpga-cadence.el")
+;;;###autoload (autoload 'fpga-cadence-xrun-compile "fpga.el")
 (fpga-utils-define-compile-fn fpga-cadence-xrun-compile
   :docstring "Compile Xcelium COMMAND with error regexp highlighting."
   :buf fpga-cadence-xrun-buf
@@ -143,7 +143,7 @@
      (,fpga-utils-curly-braces-re . fpga-utils-curly-braces-face)
      (,fpga-cadence-vsif-attribute-fake-comment-re-font-lock . (2 font-lock-comment-face)))))
 
-;;;###autoload
+;;;###autoload (autoload 'fpga-cadence-vsif-mode "fpga.el")
 (define-derived-mode fpga-cadence-vsif-mode c-mode "VSIF"
   "A mode for VSIF vManager regression files."
   (setq-local font-lock-defaults fpga-cadence-vsif-font-lock-defaults))
