@@ -135,8 +135,16 @@ With `prefix-arg', delete NUM-CHARS characters."
 
 (cl-defmacro fpga-utils-define-compilation-mode (name &key desc docstring compile-re buf-name)
   "Macro to define a compilation derived mode for a FPGA error regexp.
-NAME is the name of the created function.
-ARGS is a property list with :desc, :docstring, :compile-re and :buf-name."
+
+NAME is the name of the created compilation mode.
+
+The compilation-derived mode will be passed key args DESC and DOCSTRING for
+documentation.
+
+COMPILE-RE is be used to map `compilation-error-regexp-alist' and
+`compilation-error-regexp-alist-alist'.
+
+BUF-NAME determines the name of the compilation buffer."
   (declare (indent 1) (debug 1))
   `(define-compilation-mode ,name ,desc ,docstring
      (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
@@ -147,8 +155,13 @@ ARGS is a property list with :desc, :docstring, :compile-re and :buf-name."
 
 (cl-defmacro fpga-utils-define-compile-fn (name &key docstring buf comp-mode)
   "Macro to define a function to compile with error regexp highlighting.
-Function will be callable by NAME.
-ARGS is a property list."
+
+DOCSTRING is passed to created function named NAME to document its purpose.
+
+BUF is the name of the used buffer.
+
+COMP-MODE is the name of the compilation derived mode created by macro
+`fpga-utils-define-compilation-mode'."
   (declare (indent 1) (debug 1))
   `(defun ,name (command)
      ,docstring
@@ -160,9 +173,22 @@ ARGS is a property list."
      (,comp-mode)))
 
 (cl-defmacro fpga-utils-define-shell-mode (name &key bin base-cmd shell-commands compile-re buf font-lock-kwds)
-  "Define shell mode.
-NAME is the name of the created function.
-ARGS is a property list."
+  "Define shell mode named NAME.
+
+BIN is the name of the binary used to run the shell mode.
+
+BASE-CMD is the basic command (binary plus always used optional switches) for
+the shell process.
+
+SHELL-COMMANDS is a list of strings with the shell commands, used for font-lock
+and completion.
+
+COMPILE-RE is the compilation regexp, same as the one passed to
+`fpga-utils-define-compilation-mode'.
+
+BUF is the name of the used buffer.
+
+FONT-LOCK-KWDS determine syntax highlighting for the shell mode."
   (declare (indent 1) (debug 1))
   (let ((mode-fn (intern (concat (symbol-name name) "-mode")))
         (capf-fn (intern (concat (symbol-name name) "-capf")))
