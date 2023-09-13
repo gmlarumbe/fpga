@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'compile)
-(require 'ggtags)
 (require 'company)
 
 
@@ -33,11 +32,6 @@
 (defcustom fpga-utils-source-extension-re (concat "\\." (regexp-opt '("sv" "svh" "v" "vh" "vhd" "vhdl")) "\\'")
   "FPGA source file extension regexp."
   :type 'string
-  :group 'fpga)
-
-(defcustom fpga-utils-tags-creation-fn #'ggtags-create-tags
-  "Function to use to create tags."
-  :type 'function
   :group 'fpga)
 
 (defcustom fpga-utils-completion-use-company-p t
@@ -118,10 +112,14 @@ Tags will be generated in OUT-DIR from the project file of IN-FILE (xpr/qsf).
 Third parameter FILE-LIST-FN is the used function to create gtags.files from
 IN-FILE."
   (interactive "DOutput dir: \nFInput file: ")
+  (unless (executable-find "gtags")
+    (error "Error: gtags not available in the PATH"))
   (let* ((gtags-file-name "gtags.files")
-         (gtags-file-path (file-name-concat out-dir gtags-file-name)))
+         (gtags-file-path (file-name-concat out-dir gtags-file-name))
+         (gtags-cmd (mapconcat #'identity `("cd" ,out-dir "&&" "gtags" "-v") " "))
+         (gtags-buf "*fpga-gtags*"))
     (fpga-utils-write-file-from-filelist gtags-file-path (funcall file-list-fn in-file))
-    (funcall fpga-utils-tags-creation-fn out-dir)))
+    (async-shell-command gtags-cmd gtags-buf gtags-buf)))
 
 (defun fpga-utils-shell-delchar-or-maybe-eof (num-chars)
   "Delete character or exit shell.
