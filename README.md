@@ -60,9 +60,27 @@ With `use-package`:
 
 ## Features ##
 
-### Synthesis/Simulation compilation modes ###
+### Synthesis/Simulation compilation functions and modes ###
 
-Compilation modes with their corresponding regexps are provided for each vendor tool:
+Compilation functions with their corresponding regexps are provided for each vendor tool:
+
+  * `fpga-xilinx-vivado-compile`
+  * `fpga-altera-quartus-compile`
+  * `fpga-lattice-diamond-compile`
+  * `fpga-cadence-xrun-compile`
+  * `fpga-siemens-vsim-compile`
+  * `fpga-synopsys-synplify-compile`
+  * `fpga-yosys-compile`
+
+These can be used as follows:
+
+``` emacs-lisp
+;; Assumes that you are working with Makefiles and that there is a target named
+;; `vivado' that runs synthesis/simulation
+(fpga-xilinx-vivado-compile "make vivado")
+```
+
+The package also provides compilation modes for each tool:
 
   * `fpga-xilinx-vivado-compilation-mode`
   * `fpga-altera-quartus-compilation-mode`
@@ -75,6 +93,15 @@ Compilation modes with their corresponding regexps are provided for each vendor 
 These are used by the package to define functions that perform synthesis/simulation compilations.
 For example, `M-x fpga-xilinx-vivado-syn RET` will prompt the user for an XPR project file.
 Once selected, a Vivado compilation with error message colorized will take place.
+
+As an example, the snippet below has a similar effect as the previous
+one for Vivado synthesis/simulation:
+
+``` emacs-lisp
+(compile "make vivado")
+(fpga-xilinx-vivado-compilation-mode) ; Runs in the *compilation* buffer
+```
+
 
 ##### Demo video #####
 
