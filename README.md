@@ -1,6 +1,6 @@
 [![MELPA](https://melpa.org/packages/fpga-badge.svg)](https://melpa.org/#/fpga)
 [![MELPA Stable](https://stable.melpa.org/packages/fpga-badge.svg)](https://stable.melpa.org/#/fpga)
-[![Build Status](https://github.com/gmlarumbe/fpga/workflows/elisp-check/badge.svg)](https://github.com/gmlarumbe/fpga/actions/workflows/elisp-check.yml)
+[![Build Status](https://github.com/gmlarumbe/fpga/actions/workflows/elisp_check.yml/badge.svg)](https://github.com/gmlarumbe/fpga/actions/workflows/elisp_check.yml)
 
 # fpga.el - FPGA & ASIC Utils for Emacs #
 
