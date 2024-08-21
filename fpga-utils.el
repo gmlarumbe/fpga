@@ -25,7 +25,8 @@
 ;;; Code:
 
 (require 'compile)
-
+(eval-when-compile
+  (require 'cl-lib))
 
 ;;;; Custom
 (defcustom fpga-utils-source-extension-re (concat "\\." (regexp-opt '("sv" "svh" "v" "vh" "vhd" "vhdl")) "\\'")
