@@ -170,8 +170,9 @@ COMP-MODE is the name of the compilation derived mode created by macro
        (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
            (kill-buffer ,buf)
          (user-error "Aborted")))
-     (compile command)
-     (,comp-mode)))
+     (pop-to-buffer (compile command))
+     (,comp-mode)
+     (setq-local compile-command command)))
 
 (cl-defmacro fpga-utils-define-shell-mode (name &key bin base-cmd shell-commands compile-re buf font-lock-kwds)
   "Define shell mode named NAME.
