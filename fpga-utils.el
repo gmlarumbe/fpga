@@ -150,7 +150,7 @@ BUF-NAME determines the name of the compilation buffer."
   `(define-compilation-mode ,name ,desc ,docstring
      (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
      (setq-local compilation-error-regexp-alist-alist ,compile-re)
-     (when ,buf (rename-buffer ,buf-name))
+     (when ,buf-name (rename-buffer ,buf-name))
      (setq truncate-lines t)
      (goto-char (point-max))))
 
@@ -231,7 +231,7 @@ FONT-LOCK-KWDS determine syntax highlighting for the shell mode."
          :global nil
          (setq-local compilation-error-regexp-alist (mapcar #'car ,compile-re))
          (setq-local compilation-error-regexp-alist-alist ,compile-re)
-         (when ,buf (rename-buffer ,buf-name))
+         (when ,buf (rename-buffer ,buf))
          (setq truncate-lines t)
          (goto-char (point-max))
          (setq-local comint-dynamic-complete-functions '(,capf-fn)))
