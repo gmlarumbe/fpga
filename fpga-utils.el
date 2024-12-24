@@ -166,7 +166,7 @@ COMP-MODE is the name of the compilation derived mode created by macro
   (declare (indent 1) (debug 1))
   `(defun ,name (command)
      ,docstring
-     (when (get-buffer ,buf)
+     (when (and ,buf (get-buffer ,buf))
        (if (y-or-n-p (format "Buffer %s is in use, kill its process and start new compilation?" ,buf))
            (kill-buffer ,buf)
          (user-error "Aborted")))
