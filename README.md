@@ -33,6 +33,14 @@ To install it via [straight](https://github.com/radian-software/straight.el) wit
 (use-package fpga)
 ```
 
+### GUIX ###
+
+To install via [Guix](https://guix.gnu.org) use:
+
+``` shell
+$ guix install emacs-fpga
+```
+
 ## Basic config ##
 
 First set which vendors you want tools for and then load the package.
