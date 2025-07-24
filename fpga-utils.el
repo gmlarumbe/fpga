@@ -152,6 +152,7 @@ BUF-NAME determines the name of the compilation buffer."
      (setq-local compilation-error-regexp-alist-alist ,compile-re)
      (when ,buf-name (rename-buffer ,buf-name))
      (setq truncate-lines t)
+     (setq-local compilation--start-time (float-time))
      (goto-char (point-max))))
 
 (cl-defmacro fpga-utils-define-compile-fn (name &key docstring buf comp-mode)
