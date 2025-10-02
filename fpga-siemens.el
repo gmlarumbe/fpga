@@ -41,6 +41,7 @@
 ;;;; Compilation-re
 (defvar fpga-siemens-vsim-compile-re
   '(;; vlog
+    (vlog-2025-error "^\\*\\* \\(?1:Error\\)\\(?2: (suppressible)\\)?:\\(?3: ([a-z0-9-]+)\\)? \\(?4:[a-zA-Z0-9./_-]+\\)(\\(?5:[0-9]+\\)\\(?6::\\(?7:[0-9]+\\)\\)?): " 4 5 7 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face) (3 fpga-utils-compilation-msg-code-face))
     (vlog-error   "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:[a-zA-Z0-9./_-]+\\)(\\(?3:[0-9]+\\)): \\(?4:([a-zA-Z0-9_-]+) \\)?" 2 3 nil 2 nil (1 compilation-error-face))
     (vlog-error2  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:([a-zA-Z0-9_-]+) \\)?\\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vlog-error3  "^\\*\\* \\(?1:Error\\)\\( (suppressible)\\)?: \\(?2:\\(([a-zA-Z0-9_-]+) \\)?\\*\\* while parsing file included at \\(?3:[a-zA-Z0-9./_-]+\\)\\)(\\(?4:[0-9]+\\))\n\\*\\* \\(?5:at\\) \\(?6:[a-zA-Z0-9./_-]+\\)(\\(?7:[0-9]+\\)): " 6 7 nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face) (3 compilation-error-face) (4 compilation-line-face) (5 fpga-utils-compilation-msg-code-face))
@@ -64,6 +65,8 @@
     (vsim-error3  "^# \\*\\* \\(?1:Error\\( (suppressible)\\)?\\): \\(?2:([a-zA-Z0-9./_-]+)\\)" nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-error4  "^# \\*\\* \\(?1:Error\\( (suppressible)\\)?\\): \\(?2:([a-zA-Z0-9_-]+) \\)" nil nil nil 2 nil (1 compilation-error-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-error5  "^# \\*\\* \\(?1:Error\\): " nil nil nil 2 nil (1 compilation-error-face))
+    (vsim-error-assert   "^#\\s-+\\(?1:Time\\):\\s-+\\(?2:[0-9]+\\s-+[a-z]+\\)\\s-+\\(?3:Scope\\):\\s-+\\(?4:[a-zA-Z0-9_\\/\\.]+\\)\\s-+\\(?5:File\\):\\s-+\\(?6:[a-zA-Z0-9_\\/\\.]+\\)\\s-+\\(?7:Line\\):\\s-+\\(?8:[0-9]+\\)" 6 8 nil 2 nil (1 compilation-line-face) (2 fpga-utils-compilation-msg-code-face) (3 compilation-line-face) (4 fpga-utils-compilation-msg-code-face) (5 compilation-line-face))
+    (vsim-error-assert-2 "^#\\s-+\\(?1:Time\\):\\s-+\\(?2:[0-9]+\\s-+[a-z]+\\)\\s-+\\(?3:Started\\):\\s-+\\(?4:[0-9]+\\s-+[a-z]+\\)\\s-+\\(?5:Scope\\):\\s-+\\(?6:[a-zA-Z0-9_\\/\\.]+\\)\\s-+\\(?7:File\\):\\s-+\\(?8:[a-zA-Z0-9_\\/\\.]+\\)\\s-+\\(?9:Line\\):\\s-+\\(?10:[0-9]+\\)" 8 10 nil 2 nil (1 compilation-line-face) (2 fpga-utils-compilation-msg-code-face) (3 compilation-line-face) (4 fpga-utils-compilation-msg-code-face) (5 compilation-line-face) (6 fpga-utils-compilation-msg-code-face) (7 compilation-line-face))
     (vsim-warning  "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+)\\) .*\n#[ ]+\\(?3:Time: [0-9]+ [a-z]s  Iteration: [0-9]+  .+\\)File: \\(?4:[a-zA-Z0-9./_-]+\\) Line: \\(?5:[0-9]+\\)" 4 5 nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face) (3 fpga-utils-compilation-msg-code-face))
     (vsim-warning2 "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+)\\) \\(?3:[a-zA-Z0-9./_-]+\\)(\\(?4:[0-9]+\\)): " 3 4 nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face))
     (vsim-warning3 "^# \\*\\* \\(?1:Warning\\): \\(?2:([a-zA-Z0-9./_-]+)\\)" nil nil nil 1 nil (1 compilation-warning-face) (2 fpga-utils-compilation-msg-code-face))
