@@ -269,11 +269,9 @@ When the region is active, send the region instead."
                    to (line-end-position)
                    end (1+ to)))
            (setq commands (buffer-substring-no-properties from to))
-           (comint-send-string proc commands)
-           (comint-send-string proc "\n")
            (with-current-buffer (process-buffer proc)
-             (dolist (cmd (split-string commands "\n"))
-               (comint-add-to-input-history cmd)))
+             (insert commands)
+             (comint-send-input))
            (goto-char end)))
 
        ;; Add font-lock keywords for extra syntax highlighting
