@@ -259,7 +259,8 @@ Enables auto-completion and syntax highlighting."
          "Send the current line to the its shell and step to the next line.
 When the region is active, send the region instead."
          (interactive)
-         (let (from to end (proc (get-buffer-process ,buf)))
+         (let ((proc (get-buffer-process ,buf))
+               from to end commands)
            (if (use-region-p)
                (setq from (region-beginning)
                      to (region-end)
@@ -267,8 +268,12 @@ When the region is active, send the region instead."
              (setq from (line-beginning-position)
                    to (line-end-position)
                    end (1+ to)))
-           (comint-send-string proc (buffer-substring-no-properties from to))
+           (setq commands (buffer-substring-no-properties from to))
+           (comint-send-string proc commands)
            (comint-send-string proc "\n")
+           (with-current-buffer (process-buffer proc)
+             (dolist (cmd (split-string commands "\n"))
+               (comint-add-to-input-history cmd)))
            (goto-char end)))
 
        ;; Add font-lock keywords for extra syntax highlighting
